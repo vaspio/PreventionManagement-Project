@@ -14,19 +14,17 @@ import java.util.Properties;
 
 import org.eclipse.paho.client.mqttv3.*;
 
-public class MyServer {
+public class EdgeServer {
 
 	// Init server
 	public static void main(String[] args) {
 		connectToServer();
 	}
 
-	// Server stuff
-	public static void connectToServer() {
 
-		// serverstuff
+    public static void connectToServer() {
+
 		System.out.println("Setting the Server info...");
-
 		System.out.println("Setting Broker IP...");
 		String broker = "tcp://localhost:1883";
 		System.out.println("Setting client ID for Mqtt client...");
@@ -38,12 +36,10 @@ public class MyServer {
 
 		// topics
 		System.out.println("Setting the topics...");
-
 		String publishTopicAndroid = "pub_android";
 		String publishTopicIot = "pub_iot";
 		String subscribeTopicAndroid = "sub_android";
 		String subscribeTopicIot = "sub_iot";
-
         System.out.println("Setting topics for the android and iot to subscribe and publish to...");
 
 		try {
@@ -77,32 +73,31 @@ public class MyServer {
 		}
 
 
-        /* DATABASE */
+        /*************
+        ** DATABASE **
+        *************/
         Connection conn = null;
         try {
-            // db parameters
+
+            /* db parameters */
             String driver = "com.mysql.jdbc.Driver";
-            String url = "jdbc:mysql://localhost:3306/mydb?characterEncoding=latin1";
+            String url = "jdbc:mysql://localhost:3306/preventiondb?characterEncoding=latin1";
             String user = "root";
-            String password = "palad1n1";
+            String password = "Project123!";
 
-            // connection
+            /* connection */
             conn = DriverManager.getConnection(url, user, password);
-
-            System.out.println("dddd.....");
+            System.out.println("Connection to Database has been successful!");
+                        
+            /* INSERT EVENT TO DATABASE */
             
-            
-            /*
-            ** INSERT EVENT TO DATABASE
-            */
-
-            /* CREATE TIMESTAMP */
+            // CREATE TIMESTAMP
             long millisNow = System.currentTimeMillis();
             SimpleDateFormat timestamp2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date result = new Date(millisNow);
             String timestamp = "'" + timestamp2.format(result) + "'";
 
-            /* Information given through mqtt */
+            // Information given through mqtt
             double longitude = 10.01;
             double latitude = 9.9;
             int danger_level = 1;            
@@ -110,7 +105,7 @@ public class MyServer {
             int sensor_type = 0;
             double sensor_measurement = 89.71;
 
-            /* Calculate danger level based on the type of sensor */
+            // Calculate danger level based on the type of sensor
             //int danger_level;
 
             // Limits and thresholds
@@ -172,10 +167,6 @@ public class MyServer {
                 // conn.close();
             }
 
-    
-            
-
-
             //danger_level = 1;
             //distance_from_android = 1234.56;
  
@@ -190,10 +181,9 @@ public class MyServer {
                 System.out.println(ex.getMessage());
             }
         }
-           
-        
 	}
 
+    // Callback ?
 	void messageArrived(String topic, MqttMessage message) throws MqttException {
 		System.out.println(String.format("[%s] %s", topic, new String(message.getPayload())));
 		System.out.println("\tMessage published on topic 'Area1'");

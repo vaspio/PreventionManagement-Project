@@ -1,9 +1,9 @@
 Server:clean
-	javac -cp \* MyServer.java
-	java -cp .:\* MyServer
+	javac -cp \* EdgeServer.java
+	java -cp .:\* EdgeServer
 
 r:
-	java -cp .:\* MyServer
+	java -cp .:\* EdgeServer
 
 clean:
 	rm -f *.class
