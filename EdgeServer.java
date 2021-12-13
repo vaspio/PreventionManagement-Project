@@ -15,6 +15,7 @@ import java.util.Properties;
 import org.eclipse.paho.client.mqttv3.*;
 
 public class EdgeServer {
+    static int messages_completed = 0;
 
 	// Init server
 	public static void main(String[] args) {
@@ -51,11 +52,16 @@ public class EdgeServer {
             connOpts.setUserName("emqx_test");
             connOpts.setPassword("emqx_test_password".toCharArray());
 
-            //sampleClient.setCallback(messageArrived);
+            // callback
+            sampleClient.setCallback(mqttCallback);
+
+
             System.out.println("Connecting to broker: " + broker);
-            //(sampleClient.connect(connOpts)).waitForCompletion();
+            (sampleClient.connect(connOpts)).waitForCompletion();
             System.out.println(" Connected ");
-            int[] qualities = {0, 0};
+
+            // int[] qualities = {0, 0};
+
             //sampleClient.subscribe(subscribeTopicAndroid, 0);
             //sampleClient.subscribe(subscribeTopicIot, 0);
             //System.out.println("subscribing to topics " + subTopics[0] + " and " + subTopics[1]);
@@ -68,9 +74,6 @@ public class EdgeServer {
             System.out.println("loc "+me.getLocalizedMessage());
             return ;
         }
-		finally {
-
-		}
 
 
         /*************
@@ -183,9 +186,38 @@ public class EdgeServer {
         }
 	}
 
-    // Callback ?
-	void messageArrived(String topic, MqttMessage message) throws MqttException {
-		System.out.println(String.format("[%s] %s", topic, new String(message.getPayload())));
-		System.out.println("\tMessage published on topic 'Area1'");
-	}
+
+    static MqttCallback mqttCallback = new MqttCallback() {
+        @Override
+        public void connectionLost(Throwable connection) {
+            System.out.println("\n\nConnection lost..");
+            return;
+        }
+
+        @Override
+        public void messageArrived(String topic, MqttMessage mqttMessage) throws MqttException {
+            String message = new String(mqttMessage.getPayload());
+            System.out.println("Topic:" + topic + " Message:" + message + " qos " + mqttMessage.getQos());
+        }
+
+        @Override
+        public void deliveryComplete(IMqttDeliveryToken token) {
+            try {
+                // System.out.println("Pub complete" + new String(token.getMessage().getPayload()));
+                if(token.getMessage()==null){
+                    messages_completed++;
+                    System.out.println("Messages completed:" + messages_completed);
+                }
+            }
+            catch(MqttException exception){
+                exception.getMessage();
+            }
+        }
+    };
+
+	// void messageArrived(String topic, MqttMessage message) throws MqttException {
+	// 	System.out.println(String.format("[%s] %s", topic, new String(message.getPayload())));
+	// 	System.out.println("\tMessage published on topic 'Area1'");
+	// }
 }
+
