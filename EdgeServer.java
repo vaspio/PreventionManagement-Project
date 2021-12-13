@@ -62,8 +62,8 @@ public class EdgeServer {
 
             // int[] qualities = {0, 0};
 
-            //sampleClient.subscribe(subscribeTopicAndroid, 0);
-            //sampleClient.subscribe(subscribeTopicIot, 0);
+            sampleClient.subscribe(subscribeTopicAndroid, 0);
+            sampleClient.subscribe(subscribeTopicIot, 0);
             //System.out.println("subscribing to topics " + subTopics[0] + " and " + subTopics[1]);
             //System.out.println("publishing to topic " + pubTopic1);
             //System.out.println("publishing to topic " + pubTopic2);
@@ -166,7 +166,7 @@ public class EdgeServer {
             } catch(SQLException ex){
                 System.out.println(ex.getMessage());
             } finally {
-                System.out.println("Finally closing connection to DB");            
+                // System.out.println("Finally closing connection to DB");            
                 // conn.close();
             }
 
