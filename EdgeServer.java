@@ -45,7 +45,7 @@ public class EdgeServer {
     public static void connectToServer() {
 
         // Server settings
-		String broker = "tcp://localhost:1883";
+        String broker = "tcp://localhost:1883";
 		String clientId = "JavaServer";
 		MqttClientPersistence persistence = null;
 		MqttAsyncClient sampleClient;
@@ -188,7 +188,28 @@ public class EdgeServer {
 
     // Calculate distance of device from the android
     static Double fnCalculateDistanceFromAndroid(Double x, Double y){
-        return x * y;
+        //https://stackoverflow.com/questions/3694380/calculating-distance-between-two-points-using-latitude-longitude
+        
+        /*
+        ** Initial implementation takes height differences into account yet this is not provided here
+        ** It is suggested to pass 0.00 if height is deemed inconsequencial, and such is the case below
+        ** @returns Distance in Meters
+        */
+        final int R = 6371; // Radius of the earth
+        double latDistance = Math.toRadians(android_position_x - x);
+        double lonDistance = Math.toRadians(android_position_y - y);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+            + Math.cos(Math.toRadians(android_position_y)) * Math.cos(Math.toRadians(android_position_x))
+            * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        
+        // convert to meters
+        double distance = R * c * 1000; 
+
+        double height = 0.00;
+        distance = Math.pow(distance, 2) + Math.pow(height, 2);
+
+        return Math.sqrt(distance);
     }
 
     // Compute danger level
