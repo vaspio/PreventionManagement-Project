@@ -10,8 +10,10 @@ import java.text.SimpleDateFormat;
 import java.util.Scanner;
 import java.util.Date;
 import java.util.Properties;
+import javax.xml.parsers.*;
 
 import org.eclipse.paho.client.mqttv3.*;
+import org.w3c.dom.*;
 
 
 public class EdgeServer {
@@ -19,6 +21,8 @@ public class EdgeServer {
     // Tracking Mqtt messaging statistics
     static int messages_received = 0;
     static int messages_completed = 0;
+
+    // Keeping track of android position
     static double android_position_x = 35.58;
     static double android_position_y = 28.12;
     
@@ -78,6 +82,10 @@ public class EdgeServer {
 
             sampleClient.subscribe(subscribeTopicAndroid, 0);
             sampleClient.subscribe(subscribeTopicIot, 0);
+            String p = "mhnuma gia android";
+            MqttMessage pub_message = new MqttMessage();
+            pub_message.setPayload(p.getBytes());
+            sampleClient.publish(publishTopicAndroid, pub_message);
             //System.out.println("subscribing to topics " + subTopics[0] + " and " + subTopics[1]);
             //System.out.println("publishing to topic " + pubTopic1);
             //System.out.println("publishing to topic " + pubTopic2);
@@ -125,33 +133,40 @@ public class EdgeServer {
         }
     };
 
+    // Receiving
     static void fnHandlePublish(String[] messageFromPublish){
 
         // Information given through mqtt
-        double longitude = Double.parseDouble(messageFromPublish[0]);
-        double latitude = Double.parseDouble(messageFromPublish[1]);
-        double battery = Double.parseDouble(messageFromPublish[2]);
-        double current_smoke = Double.parseDouble(messageFromPublish[3]);
-        double current_gas = Double.parseDouble(messageFromPublish[4]);
-        double current_temperature = Double.parseDouble(messageFromPublish[5]);
-        double current_radiation = Double.parseDouble(messageFromPublish[6]);
+        try{
+            double longitude = Double.parseDouble(messageFromPublish[0]);
+            double latitude = Double.parseDouble(messageFromPublish[1]);
+            double battery = Double.parseDouble(messageFromPublish[2]);
+            double current_smoke = Double.parseDouble(messageFromPublish[3]);
+            double current_gas = Double.parseDouble(messageFromPublish[4]);
+            double current_temperature = Double.parseDouble(messageFromPublish[5]);
+            double current_radiation = Double.parseDouble(messageFromPublish[6]);
 
-        String timestamp = fnGetTimestamp();
-        double distance_from_android = fnCalculateDistanceFromAndroid(longitude, latitude);
-        int danger_level = fnComputeDangerLevel(current_smoke, current_gas, current_temperature, current_radiation);
+            String timestamp = fnGetTimestamp();
+            double distance_from_android = fnCalculateDistanceFromAndroid(longitude, latitude);
+            int danger_level = fnComputeDangerLevel(current_smoke, current_gas, current_temperature, current_radiation);
 
-        // Contruct SQL query
-        String sqlInsert = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + longitude + ", " + latitude + ", " + danger_level + ", " + distance_from_android + ", " + battery + ", " + current_smoke + ", " + current_gas + ", " + current_temperature + ", " + current_radiation + ")";
+            // Contruct SQL query
+            String sqlInsert = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + longitude + ", " + latitude + ", " + danger_level + ", " + distance_from_android + ", " + battery + ", " + current_smoke + ", " + current_gas + ", " + current_temperature + ", " + current_radiation + ")";
 
-        // Create connection with DB and execute query
-        Connection conn = fnGetDatabaseConnection();
-        try {
-            PreparedStatement statement = conn.prepareStatement(sqlInsert);
-            int row = statement.executeUpdate();
-            System.out.println("mySQL affected rows" + row);
+            // Create connection with DB and execute query
+            Connection conn = fnGetDatabaseConnection();
+            try {
+                PreparedStatement statement = conn.prepareStatement(sqlInsert);
+                int row = statement.executeUpdate();
+                System.out.println("mySQL affected rows" + row);
+            }
+            catch(SQLException ex){
+                System.out.println(ex.getMessage());
+            }
         }
-        catch(SQLException ex){
-            System.out.println(ex.getMessage());
+        catch(Exception e){
+            // handle wrong published messages
+            System.out.println("The recieved message is in the wrong format.");
         }
     }
 
@@ -162,7 +177,7 @@ public class EdgeServer {
     // Get a connection with the DB
     public static Connection fnGetDatabaseConnection(){
         Connection conn = null;
-        try{
+        try {
             String driver = "com.mysql.jdbc.Driver";
             String url = "jdbc:mysql://localhost:3306/preventiondb?characterEncoding=latin1";
             String user = "root";
@@ -177,6 +192,7 @@ public class EdgeServer {
         return conn;
     }
 
+
     // Get current date formatted for mysql
     static String fnGetTimestamp(){
         long millisNow = System.currentTimeMillis();
@@ -185,6 +201,7 @@ public class EdgeServer {
         String timestamp = "'" + timestamp2.format(result) + "'";
         return timestamp;
     }
+
 
     // Calculate distance of device from the android
     static Double fnCalculateDistanceFromAndroid(Double x, Double y){
@@ -212,8 +229,10 @@ public class EdgeServer {
         return Math.sqrt(distance);
     }
 
+
     // Compute danger level
     static int fnComputeDangerLevel(Double current_smoke, Double current_gas, Double current_temperature, Double current_radiation){
+
         // Values over threshold
         boolean smoke_over_threshold = false;
         if(current_smoke > smoke_upper_threshold) {
