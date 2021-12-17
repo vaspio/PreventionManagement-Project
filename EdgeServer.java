@@ -14,6 +14,7 @@ import javax.xml.parsers.*;
 
 import org.eclipse.paho.client.mqttv3.*;
 import org.w3c.dom.*;
+import org.xml.sax.SAXException;
 
 
 public class EdgeServer {
@@ -42,6 +43,7 @@ public class EdgeServer {
 
 	// Init server
 	public static void main(String[] args) {
+        fnParseXMLFile("android_1.xml");
 		connectToServer();
 	}
 
@@ -266,5 +268,41 @@ public class EdgeServer {
         return danger_level;
     }
 
-}
 
+    // Parse xml
+    static void fnParseXMLFile(String fileName){
+
+        File inputFile = new File(fileName);
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        try {
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            try {
+                Document doc = builder.parse(inputFile);
+                doc.getDocumentElement().normalize();
+                System.out.println("root element : " + doc.getDocumentElement().getNodeName());
+                NodeList nList = doc.getElementsByTagName("timestamp");
+                System.out.println("-------------------------------");
+
+                for(int temp = 0; temp < nList.getLength(); temp++){
+                    Node nNode = nList.item(temp);
+                    System.out.println("\nCurrent Element :" + nNode.getNodeName());
+
+                    if(nNode.getNodeType() == Node.ELEMENT_NODE){
+                        Element eElement = (Element) nNode;
+                        System.out.println("timestamp : " + eElement.getAttribute("vehicle"));
+                        System.out.println("timestamp : " + eElement.getAttribute("id"));
+                    }
+                }
+            }
+            catch(SAXException ex){
+                System.out.println(ex.getMessage());
+            }
+            catch(IOException IOEx){
+                System.out.println(IOEx.getMessage());
+            }
+        }
+        catch(ParserConfigurationException e){
+            System.out.println(e.getMessage());
+        }
+    }
+}
