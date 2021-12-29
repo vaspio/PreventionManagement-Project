@@ -7,6 +7,10 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
  
 public class Map {
     public static void main(String[] args) throws IOException {
@@ -17,11 +21,13 @@ public class Map {
             String latitude = "40.714728";
             String longitude = "-73.998672";
 
-            String imageUrl="https://maps.googleapis.com/maps/api/staticmap?center="
+            // https://maps.googleapis.com/maps/api/js?latlng=40.714224,-73.961452&key=AIzaSyBhhxK28jeTCCVVnvRTbhm-qMWWwO1Mz58
+
+            String imageUrl="https://maps.googleapis.com/maps/api/js?latlng="
             + latitude
             + ","
             + longitude
-            + "&zoom=11&size=612x612&scale=2&maptype=roadmap&key=AIzaSyBhhxK28jeTCCVVnvRTbhm-qMWWwO1Mz58&format=jpg";;
+            + "&zoom=11&size=1028x1028&scale=2&maptype=roadmap&key=AIzaSyBhhxK28jeTCCVVnvRTbhm-qMWWwO1Mz58&format=jpg";
             String destinationFile = "image.jpg";
  
             // read the map image from Google
