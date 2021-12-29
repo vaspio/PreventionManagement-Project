@@ -84,9 +84,15 @@ public class EdgeServer {
 
             sampleClient.subscribe(subscribeTopicAndroid, 0);
             sampleClient.subscribe(subscribeTopicIot, 0);
-            String p = "mhnuma gia android";
+            
+            if(!sampleClient.isConnected()){
+                //bad
+            }
+
+            String set_pub = "mhnuma gia android";
             MqttMessage pub_message = new MqttMessage();
-            pub_message.setPayload(p.getBytes());
+            pub_message.setPayload(set_pub.getBytes());
+
             sampleClient.publish(publishTopicAndroid, pub_message);
             //System.out.println("subscribing to topics " + subTopics[0] + " and " + subTopics[1]);
             //System.out.println("publishing to topic " + pubTopic1);
