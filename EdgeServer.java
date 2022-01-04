@@ -46,59 +46,24 @@ public class EdgeServer {
 	// Init server
 	public static void main(String[] args) {
         gui();
+
         fnParseXMLFile("android_1.xml");
 		connectToServer();
 	}
 
     public static void gui() {
+        String htmlFilePath = "test.html"; // path to your new file
+        File htmlFile = new File(htmlFilePath);
 
-        JFrame frame = new JFrame("Observatory");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 600);
-
-        // to comment out
-        JButton button = new JButton("Press");
-        frame.getContentPane().add(button); // Adds Button to content pane of frame
-
-        // frame.getContentPane().add(new JLabel("<html><div id=\"projects-map\"></div>"+
-        //     "<script type=\"text/javascript\">"+ 
-        //         "function initMap(){"+
-        //         "var mapCenter = { lat: 42, lng: 10 }"+
-        //         "const mapElement = document.getElementById('projects-map')"+
-    
-        //         "var map = new google.maps.Map(mapElement,{ zoom: 3, center: mapCenter })"+
-        //         "callback()}</script>"+
-        //         "<script async defer src=\"https://maps.googleapis.com/maps/api/js?key=AIzaSyA6b0y8-RQpa-G3qCn_jADenvMIgQvwkbQ&callback=initMap\" ></script>"+
-        //     "</html>", SwingConstants.CENTER));
-
-        // frame.getContentPane().add(new JLabel("<html><div id='projects-map'></div><iframe src=\"https://maps.google.com/maps?q=Tangesir%20Dates%20Products&amp;t=&amp;z=13&amp;ie=UTF8&amp;iwloc=&amp;output=embed\" width=300 height=150 allowfullscreen></iframe><script type='text/javascript'>function initMap(){const e=document.getElementById(\"projects-map\");new google.maps.Map(e,{zoom:3,center:{lat:42,lng:10}})}</script><script async src='https://maps.googleapis.com/maps/api/js?key=AIzaSyA6b0y8-RQpa-G3qCn_jADenvMIgQvwkbQ&callback=initMap'></script></html>", SwingConstants.CENTER));
-        // frame.getContentPane().add(new JLabel("<iframe src=\"https://maps.google.com/maps?q=Tangesir%20Dates%20Products&amp;t=&amp;z=13&amp;ie=UTF8&amp;iwloc=&amp;output=embed\" width=300 height=150 allowfullscreen></iframe>"));
-
-        String url = "https://raw.githubusercontent.com/dimitriskoslek/temprepo/main/test";
-        JEditorPane ep = new JEditorPane();
-        // ep.setContentType("text/html");
-        // ep.setText("<div id=\"projects-map\"></div>"+
-        //     "<script type=\"text/javascript\">"+ 
-        //         "function initMap(){"+
-        //         "var mapCenter = { lat: 42, lng: 10 }"+
-        //         "const mapElement = document.getElementById('projects-map')"+
-    
-        //         "var map = new google.maps.Map(mapElement,{ zoom: 3, center: mapCenter })"+
-        //         "}</script>"+
-        //         "<script async defer src=\"https://maps.googleapis.com/maps/api/js?key=AIzaSyA6b0y8-RQpa-G3qCn_jADenvMIgQvwkbQ&callback=initMap\" ></script>");
-        try {
-            ep.setPage(url);
-        }catch (Exception e){
-            //s
+        try{
+            // open the default web browser for the HTML page
+            Desktop.getDesktop().browse(htmlFile.toURI());
+        }
+        catch(IOException e){
+            System.out.println(e.getMessage());
         }
 
-        // frame.getContentPane().add(new JLabel("<html>Tregex and Tsurgeon</html>", SwingConstants.CENTER), BorderLayout.NORTH);
-        frame.getContentPane().add(ep);
-
-        //button.setVisible(true);
-        // frame.setVisible(true);
     }
-
 
     public static void connectToServer() {
 
@@ -151,10 +116,9 @@ public class EdgeServer {
             //System.out.println("publishing to topic " + pubTopic2);
         }
         catch (MqttException me) {
-            System.out.println("reason "+me.getReasonCode());
-            System.out.println("msg "+me.getMessage());
-            System.out.println("loc "+me.getLocalizedMessage());
-            return ;
+            System.out.println("reason " + me.getReasonCode());
+            System.out.println("msg " + me.getMessage());
+            System.out.println("loc " + me.getLocalizedMessage());
         }        
 	}
 
@@ -188,7 +152,7 @@ public class EdgeServer {
                 }
             }
             catch(MqttException exception) {
-                exception.getMessage();
+                System.out.println(exception.getMessage());
             }
         }
     };

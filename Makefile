@@ -1,9 +1,9 @@
 Server:clean
-	javac -cp \* EdgeServer.java
-	java -cp .:\* EdgeServer
+	javac -cp JarFiles/\* EdgeServer.java
+	java -cp .:JarFiles/\* EdgeServer
 
 r:
-	java -cp .:\* EdgeServer
+	java -cp .:JarFiles/\* EdgeServer
 
 clean:
 	rm -f *.class
