@@ -1,25 +1,31 @@
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.awt.*;
 import java.sql.SQLException;
 import java.sql.DriverManager;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
+import java.sql.Statement;
+import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.Scanner;
 import java.util.Date;
 import java.util.Properties;
+
 import javax.xml.parsers.*;
+import java.net.URL;
+import java.awt.image.BufferedImage;
+import java.awt.image.*;
+import javax.imageio.*;
+import javax.swing.text.html.HTMLEditorKit;
+
 
 import org.eclipse.paho.client.mqttv3.*;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import javax.swing.*;
-import java.awt.*;
 
-
-public class EdgeServer {
+public class EdgeServer{
     
     // Tracking Mqtt messaging statistics
     static int messages_received = 0;
@@ -46,9 +52,11 @@ public class EdgeServer {
 	// Init server
 	public static void main(String[] args) {
         gui();
+        fnGetLastEntry();
 
         fnParseXMLFile("android_1.xml");
 		connectToServer();
+
 	}
 
     public static void gui() {
@@ -291,6 +299,32 @@ public class EdgeServer {
     }
 
 
+    // Get last entry from database
+    static float[] fnGetLastEntry(){
+        float longitude = 0;
+        float latitude = 0;
+
+        try{
+            Connection con = fnGetDatabaseConnection();
+
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("select * from events");
+
+            while(rs.next()){
+                longitude = rs.getFloat(3);
+                latitude = rs.getFloat(4);
+            }
+        }
+        catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+
+        System.out.println("gg" + longitude +" "+latitude);
+
+        float[] pos = {longitude,latitude};
+        return pos;
+    }
+
     // Parse xml
     static void fnParseXMLFile(String fileName){
 
@@ -327,4 +361,5 @@ public class EdgeServer {
             System.out.println(e.getMessage());
         }
     }
+
 }
