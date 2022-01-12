@@ -3,3 +3,4 @@
 gt
 *.idea
 rest_api/node_modules
+svelte_front/node_modules
