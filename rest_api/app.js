@@ -1,23 +1,16 @@
 const express = require('express')
-//var cors = require('cors')
+const cors = require('cors')
 
 const app = express()
 const eventRoutes = require('./routes')
 
-app.use('/events', eventRoutes)
-
+const corsOptions = {
+    origin: '*',
+}
+app.use(cors(corsOptions))
 app.use(function (req, res, next) {
-
-    res.setHeader('Access-Control-Allow-Origin', '*')
-//    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
     next();
 })
-
-//app.use(cors())
-//app.use(cors({ credentials: true, origin: true }))
-//app.options('*', cors());
+app.use('/events', eventRoutes)
 
 module.exports = app
