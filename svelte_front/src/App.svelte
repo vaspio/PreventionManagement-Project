@@ -13,11 +13,11 @@
 		const map = new google.maps.Map( mapElement, { zoom: 3, center: mapCenter })
 			
 		// marker elements
-		const marker1 = new google.maps.Marker({
+		var marker1 = new google.maps.Marker({
 			position: markerPos1,
 			map: map
 		})
-		const marker2 = new google.maps.Marker({
+		var marker2 = new google.maps.Marker({
 			position: markerPos2,
 			map: map
 		})
@@ -48,6 +48,15 @@
 		var locations = await getLatestLocations()
 		console.log(await locations)
 
+		locations = locations.events
+		console.log(locations)
+
+		var tempMarkerPosition = { lat: parseFloat(locations[0]['latitude']), lng: parseFloat(locations[0]['longitude']) }
+		marker1.position = tempMarkerPosition
+		console.log(marker1)
+		marker1.setMap(map)
+	
+
 	}
 
 	/* Getting latest locations of androids and iot device */
@@ -57,15 +66,12 @@
 
 		const response = await fetch(url, {
 			method: 'GET',
-			cache: 'no-cache',
 			headers: { 'Content-Type': 'application/json' },
-			//mode: 'no-cors',
-			referrerPolicy: 'no-referrer',
 		})
 
 		return await response.json()
-
 	}
+
 </script>
 
 <svelte:head>
@@ -82,13 +88,6 @@
 		padding: 1em;
 		max-width: 240px;
 		margin: 0 auto;
-	}
-
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
 	}
 
 	#project-map {

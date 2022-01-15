@@ -3,7 +3,7 @@ const router = express.Router()
 const mysql = require('mysql')
 
 router.get('/', (req, res, next) => {
-	
+
 	var connection = mysql.createConnection({
 		host     : 'localhost',
 		user     : 'root',
@@ -11,8 +11,8 @@ router.get('/', (req, res, next) => {
 		database : 'preventiondb'
 	})
 	connection.connect()
-	
-	connection.query('SELECT * FROM events ORDER BY ID DESC LIMIT 1', function (error, results, fields) {
+
+	connection.query('SELECT * FROM events ORDER BY ID DESC LIMIT 2', function (error, results, fields) {
 		if (error){
 			res.status(500).json({
 				message: 'There was a problem with the database',
