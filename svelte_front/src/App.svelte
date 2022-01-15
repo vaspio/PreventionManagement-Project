@@ -14,12 +14,12 @@
 			
 		// marker elements
 		const marker1 = new google.maps.Marker({
-		position: markerPos1,
-		map: map
+			position: markerPos1,
+			map: map
 		})
 		const marker2 = new google.maps.Marker({
-		position: markerPos2,
-		map: map
+			position: markerPos2,
+			map: map
 		})
 
 		// To add the marker to the map, call setMap();
@@ -27,10 +27,10 @@
 		marker2.setMap(map)
 
 		const triangleCoords = [
-		{ lat: 25.774, lng: -80.19 },
-		{ lat: 18.466, lng: -66.118 },
-		{ lat: 32.321, lng: -64.757 },
-		{ lat: 25.774, lng: -80.19 },
+			{ lat: 25.774, lng: -80.19 },
+			{ lat: 18.466, lng: -66.118 },
+			{ lat: 32.321, lng: -64.757 },
+			{ lat: 25.774, lng: -80.19 },
 		]
 		// Construct the polygon.
 		const bermudaTriangle = new google.maps.Polygon({
@@ -53,14 +53,14 @@
 	/* Getting latest locations of androids and iot device */
 	async function getLatestLocations(){
 
-		const url = 'http://localhost:8080/events'
+		const url = 'http://localhost:4000/events'
 
 		const response = await fetch(url, {
-		method: 'GET',
-		cache: 'no-cache',
-		headers: { 'Content-Type': 'application/json' },
-		//mode: 'no-cors',
-		referrerPolicy: 'no-referrer',
+			method: 'GET',
+			cache: 'no-cache',
+			headers: { 'Content-Type': 'application/json' },
+			//mode: 'no-cors',
+			referrerPolicy: 'no-referrer',
 		})
 
 		return await response.json()
@@ -68,11 +68,12 @@
 	}
 </script>
 
+<svelte:head>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOI56x1KU5h5A8CV9UuIs1lEfjnZQCIa8" on:load={initMap}></script>
+</svelte:head>
+
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
 	<div id="project-map"></div>
-	<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOI56x1KU5h5A8CV9UuIs1lEfjnZQCIa8&callback=initMap"></script>
 </main>
 
 <style>
