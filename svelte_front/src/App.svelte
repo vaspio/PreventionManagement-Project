@@ -4,60 +4,18 @@
 	/* Draw the map */
 	async function initMap(){ 
 
-		const mapCenter = { lat: 12, lng: 10 }
-		const markerPos1 = { lat: 10, lng: 20 }
-		const markerPos2 = { lat: 8, lng: 15 }
+		// Create map initial info
+		const mapCenter = { lat: 37.977707907538836, lng: 23.726837568280057 }
+		const mapZoom = 4
+
+		// Setup map element
 		const mapElement = document.getElementById('project-map')
-		
-		// map element
-		const map = new google.maps.Map( mapElement, { zoom: 3, center: mapCenter })
-			
-		// marker elements
-		var marker1 = new google.maps.Marker({
-			position: markerPos1,
-			map: map
-		})
-		var marker2 = new google.maps.Marker({
-			position: markerPos2,
-			map: map
-		})
+		const map = new google.maps.Map( mapElement, { zoom: mapZoom, center: mapCenter })
 
-		// To add the marker to the map, call setMap();
-		marker1.setMap(map)
-		marker2.setMap(map)
-
-		const triangleCoords = [
-			{ lat: 25.774, lng: -80.19 },
-			{ lat: 18.466, lng: -66.118 },
-			{ lat: 32.321, lng: -64.757 },
-			{ lat: 25.774, lng: -80.19 },
-		]
-		// Construct the polygon.
-		const bermudaTriangle = new google.maps.Polygon({
-		paths: triangleCoords,
-		strokeColor: "#FF0000",
-		strokeOpacity: 0.8,
-		strokeWeight: 2,
-		fillColor: "#FF0000",
-		fillOpacity: 0.35,
-		})
-
-		bermudaTriangle.setMap(map)
-
-
-		var locations = await getLatestLocations()
-		console.log(await locations)
-
-		locations = locations.events
-		console.log(locations)
-
-		var tempMarkerPosition = { lat: parseFloat(locations[0]['latitude']), lng: parseFloat(locations[0]['longitude']) }
-		marker1.position = tempMarkerPosition
-		console.log(marker1)
-		marker1.setMap(map)
-	
-
+		// Self-refreshing drawings
+		drawMarkers(map)
 	}
+
 
 	/* Getting latest locations of androids and iot device */
 	async function getLatestLocations(){
@@ -70,6 +28,72 @@
 		})
 
 		return await response.json()
+	}
+
+
+	/* Draw markers on map */
+	async function drawMarkers(map){
+		
+		// Get locations from DB
+		var locations = await getLatestLocations()
+		locations = locations.events
+		
+		// Create markers and add lat/lng
+		var tempMarkerPosition = { lat: parseFloat(await locations[0]['latitude']), lng: parseFloat(await locations[0]['longitude']) }
+		var marker1 = new google.maps.Marker({
+			position: tempMarkerPosition,
+			map: map
+		})
+		tempMarkerPosition = { lat: parseFloat(await locations[1]['latitude']), lng: parseFloat(await locations[1]['longitude']) }
+		var marker2 = new google.maps.Marker({
+			position: tempMarkerPosition,
+			map: map
+		})
+		tempMarkerPosition = { lat: parseFloat(await locations[2]['latitude']), lng: parseFloat(await locations[2]['longitude']) }
+		var marker3 = new google.maps.Marker({
+			position: tempMarkerPosition,
+			map: map
+		})
+
+		// Add markers to the map
+		marker1.setMap(map)
+		marker2.setMap(map)
+		marker3.setMap(map)
+
+		drawArea(locations, map)
+		setTimeout(drawMarkers, 3000, map)
+	}
+
+
+	/* Draw area on map */
+	async function drawArea(locations, map){
+		
+		// Settings for area
+		var strokeColor = "#FF0000"
+		var strokeOpacity = 0.8
+		var strokeWeight = 2
+		var fillColor = "#FF0000"
+		var fillOpacity = 0.35
+
+		// Setup Coordinations for area
+		const triangleCoords = [
+			{ lat: parseFloat(await locations[0]['latitude']), lng: parseFloat(await locations[0]['longitude']) },
+			{ lat: parseFloat(await locations[1]['latitude']), lng: parseFloat(await locations[1]['longitude']) },
+			{ lat: parseFloat(await locations[2]['latitude']), lng: parseFloat(await locations[2]['longitude']) },
+		]
+
+		// Construct area polygon
+		const bermudaTriangle = new google.maps.Polygon({
+			paths: triangleCoords,
+			strokeColor: strokeColor,
+			strokeOpacity: strokeOpacity,
+			strokeWeight: strokeWeight,
+			fillColor: fillColor,
+			fillOpacity: fillOpacity,
+		})
+
+		// Set the area onto the map
+		bermudaTriangle.setMap(map)
 	}
 
 </script>
@@ -91,8 +115,8 @@
 	}
 
 	#project-map {
-		height: 400px;
-		width: 400px;
+		height: 650px;
+		 width: 1865px;
 	}
 
 	@media (min-width: 640px) {
