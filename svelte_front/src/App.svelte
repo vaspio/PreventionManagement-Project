@@ -77,6 +77,7 @@
 
 		// Setup Coordinations for area
 		const triangleCoords = [
+
 			{ lat: parseFloat(await locations[0]['latitude']), lng: parseFloat(await locations[0]['longitude']) },
 			{ lat: parseFloat(await locations[1]['latitude']), lng: parseFloat(await locations[1]['longitude']) },
 			{ lat: parseFloat(await locations[2]['latitude']), lng: parseFloat(await locations[2]['longitude']) },
