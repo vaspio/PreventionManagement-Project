@@ -23,6 +23,8 @@ import javax.swing.text.html.HTMLEditorKit;
 import org.eclipse.paho.client.mqttv3.*;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
+import org.json.simple.*;
+import org.json.simple.parser.*;
 import javax.swing.*;
 
 public class EdgeServer{
@@ -51,8 +53,8 @@ public class EdgeServer{
 
 	// Init server
 	public static void main(String[] args) {
-        gui();
-        fnGetLastEntry();
+        // gui();
+        // fnGetLastEntry();
 
         fnParseXMLFile("android_1.xml");
 		connectToServer();
@@ -60,15 +62,13 @@ public class EdgeServer{
 	}
 
     public static void gui() {
-        String htmlFilePath = "test.html"; // path to your new file
-        File htmlFile = new File(htmlFilePath);
-
+        // open the web browser
         try{
-            // open the default web browser for the HTML page
-            Desktop.getDesktop().browse(htmlFile.toURI());
+            String url = "http://localhost:8080/";
+            Desktop.getDesktop().browse(java.net.URI.create(url));
         }
-        catch(IOException e){
-            System.out.println(e.getMessage());
+        catch(java.io.IOException ex){
+            System.out.println(ex.getMessage());
         }
 
     }
@@ -84,8 +84,14 @@ public class EdgeServer{
 		// Topics
 		String publishTopicAndroid = "pub_android";
 		String publishTopicIot = "pub_iot";
-		String subscribeTopicAndroid = "sub_android";
+		String subscribeTopicAndroid = "Sensor Data";
 		String subscribeTopicIot = "sub_iot";
+
+        String edge_iot1 = "edge_iot1";
+        String edge_iot2 = "edge_iot2";
+        String edge_android = "edge_android/+";
+
+        
 
         // Establish mqtt client
 		try {
@@ -107,11 +113,14 @@ public class EdgeServer{
 
             // int[] qualities = {0, 0};
 
-            sampleClient.subscribe(subscribeTopicAndroid, 0);
-            sampleClient.subscribe(subscribeTopicIot, 0);
+            sampleClient.subscribe(edge_iot1, 0);
+            sampleClient.subscribe(edge_iot2, 0);
+            sampleClient.subscribe(edge_android, 0);
 
             if(!sampleClient.isConnected()){
                 //bad
+                System.out.println("Client is not connected!");
+                System.exit(0);
             }
 
             String set_pub = "mhnuma gia android";
@@ -146,8 +155,8 @@ public class EdgeServer{
             messages_received++;
 
             // Split info in an array call the handler function
-            String[] messageFromPublishArray = messageFromPublish.split("\\|");
-            fnHandlePublish(messageFromPublishArray);
+            // String[] messageFromPublishArray = messageFromPublish.split("\\|");
+            fnHandlePublish(messageFromPublish);
         }
 
         @Override
@@ -166,35 +175,37 @@ public class EdgeServer{
     };
 
     // Receiving
-    static void fnHandlePublish(String[] messageFromPublish){
+    static void fnHandlePublish(String messageFromPublish){
 
         // Information given through mqtt
         try{
-            double longitude = Double.parseDouble(messageFromPublish[0]);
-            double latitude = Double.parseDouble(messageFromPublish[1]);
-            double battery = Double.parseDouble(messageFromPublish[2]);
-            double current_smoke = Double.parseDouble(messageFromPublish[3]);
-            double current_gas = Double.parseDouble(messageFromPublish[4]);
-            double current_temperature = Double.parseDouble(messageFromPublish[5]);
-            double current_radiation = Double.parseDouble(messageFromPublish[6]);
+            fnParseJsonFile(messageFromPublish);
 
-            String timestamp = fnGetTimestamp();
-            double distance_from_android = fnCalculateDistanceFromAndroid(longitude, latitude);
-            int danger_level = fnComputeDangerLevel(current_smoke, current_gas, current_temperature, current_radiation);
+            // double longitude = Double.parseDouble(messageFromPublish[0]);
+            // double latitude = Double.parseDouble(messageFromPublish[1]);
+            // double battery = Double.parseDouble(messageFromPublish[2]);
+            // double current_smoke = Double.parseDouble(messageFromPublish[3]);
+            // double current_gas = Double.parseDouble(messageFromPublish[4]);
+            // double current_temperature = Double.parseDouble(messageFromPublish[5]);
+            // double current_radiation = Double.parseDouble(messageFromPublish[6]);
 
-            // Contruct SQL query
-            String sqlInsert = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + longitude + ", " + latitude + ", " + danger_level + ", " + distance_from_android + ", " + battery + ", " + current_smoke + ", " + current_gas + ", " + current_temperature + ", " + current_radiation + ")";
+            // String timestamp = fnGetTimestamp();
+            // double distance_from_android = fnCalculateDistanceFromAndroid(longitude, latitude);
+            // int danger_level = fnComputeDangerLevel(current_smoke, current_gas, current_temperature, current_radiation);
 
-            // Create connection with DB and execute query
-            Connection conn = fnGetDatabaseConnection();
-            try {
-                PreparedStatement statement = conn.prepareStatement(sqlInsert);
-                int row = statement.executeUpdate();
-                System.out.println("mySQL affected rows" + row);
-            }
-            catch(SQLException ex){
-                System.out.println(ex.getMessage());
-            }
+            // // Contruct SQL query
+            // String sqlInsert = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + longitude + ", " + latitude + ", " + danger_level + ", " + distance_from_android + ", " + battery + ", " + current_smoke + ", " + current_gas + ", " + current_temperature + ", " + current_radiation + ")";
+
+            // // Create connection with DB and execute query
+            // Connection conn = fnGetDatabaseConnection();
+            // try {
+            //     PreparedStatement statement = conn.prepareStatement(sqlInsert);
+            //     int row = statement.executeUpdate();
+            //     System.out.println("mySQL affected rows" + row);
+            // }
+            // catch(SQLException ex){
+            //     System.out.println(ex.getMessage());
+            // }
         }
         catch(Exception e){
             // handle wrong published messages
@@ -361,5 +372,33 @@ public class EdgeServer{
             System.out.println(e.getMessage());
         }
     }
+
+    static void fnParseJsonFile(String message){
+        JSONParser parser = new JSONParser();
+        String js = message;
+
+        try{
+            JSONObject jsonObject = (JSONObject) parser.parse(js);
+
+            System.out.println("\nLongitude: "+jsonObject.get("Longitude"));
+
+            //take data array
+            JSONArray array = (JSONArray)jsonObject.get("data");
+
+            //for(i=0){
+
+                // System.out.println("kk "+array.get(i));
+            // }
+        
+
+            
+        }catch(ParseException pe) {
+
+            System.out.println("position: " + pe.getPosition());
+            System.out.println(pe);
+        }
+    }
+
+    
 
 }
