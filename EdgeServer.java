@@ -56,21 +56,22 @@ public class EdgeServer{
     static double radiation_max_value = 11;
     static double radiation_upper_threshold = 6;
 
-	// Init server
-	public static void main(String[] args) {
+    // Init server
+    public static void main(String[] args) {
 
         // gui();
         // fnGetLastEntry();
-
-		connectToServer();
-
-	}
+    
+        connectToServer();
+    
+    }
 
 
     /*
     ** Show the GUI
     */
     public static void gui() {
+
         try{
             String url = "http://localhost:8080/";
             Desktop.getDesktop().browse(java.net.URI.create(url));
@@ -78,6 +79,7 @@ public class EdgeServer{
         catch(java.io.IOException ex){
             System.out.println(ex.getMessage());
         }
+
     }
 
 
@@ -100,7 +102,7 @@ public class EdgeServer{
 		try {
 
             // Settings for mqtt server
-			sampleClient = new MqttAsyncClient(broker, clientId, persistence);
+            sampleClient = new MqttAsyncClient(broker, clientId, persistence);
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setCleanSession(true);
             connOpts.setMaxInflight(3000);
@@ -433,7 +435,7 @@ public class EdgeServer{
                 String timestamp = fnGetTimestamp();
                 String insertEventQuery = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + arrayParsedType + ", " + arrayParsedValueDouble + ", " + arrayParsedNumber + ")";
                 System.out.println(insertEventQuery);
-                executeVoidSqltQuery(insertEventQuery);
+                executeVoidSqlQuery(insertEventQuery);
 
             }
 
@@ -459,7 +461,7 @@ public class EdgeServer{
 
             // Save new device information
             String insertDeviceQuery = "INSERT INTO devices VALUES(NULL, " + tempParsedDeviceId + ", " + latitude + ", " + longitude + ", " + danger_level + ", " + battery + ") ON DUPLICATE KEY UPDATE latitude=" + latitude + ", longitude=" + longitude + ", danger_level=" + danger_level + ", battery=" + battery;
-            executeVoidSqltQuery(insertDeviceQuery);
+            executeVoidSqlQuery(insertDeviceQuery);
 
         } catch(ParseException pe) {
 
@@ -472,7 +474,7 @@ public class EdgeServer{
     /*
     ** Execute SQL insert query
     */
-    static void executeVoidSqltQuery(String query){
+    static void executeVoidSqlQuery(String query){
 
         Connection conn = fnGetDatabaseConnection();
 
