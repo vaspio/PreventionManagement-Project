@@ -17,27 +17,17 @@
 	}
 
 
-	/* Getting latest locations of androids and iot device */
-	async function getLatestLocations(){
-
-		const url = 'http://localhost:4000/events'
-
-		const response = await fetch(url, {
-			method: 'GET',
-			headers: { 'Content-Type': 'application/json' },
-		})
-
-		return await response.json()
-	}
+	
 
 
 	/* Draw markers on map */
 	async function drawMarkers(map){
 		
-		// Get locations from DB
-		var locations = await getLatestLocations()
-		locations = locations.events
-		
+		// Get info from DB
+		var devices = await getDevicesInfo()
+		devices = devices.devices
+		console.log(devices)
+		/*
 		// Create markers and add lat/lng
 		var tempMarkerPosition = { lat: parseFloat(await locations[0]['latitude']), lng: parseFloat(await locations[0]['longitude']) }
 		var marker1 = new google.maps.Marker({
@@ -62,6 +52,7 @@
 
 		drawArea(locations, map)
 		setTimeout(drawMarkers, 3000, map)
+		*/
 	}
 
 
@@ -95,6 +86,32 @@
 
 		// Set the area onto the map
 		bermudaTriangle.setMap(map)
+	}
+
+	/* Getting devices information */
+	async function getEventsInfo(){
+
+		const url = 'http://localhost:4000/events'
+
+		const response = await fetch(url, {
+			method: 'GET',
+			headers: { 'Content-Type': 'application/json' },
+		})
+
+		return await response.json()
+	}
+
+	/* Getting events information */
+	async function getDevicesInfo(){
+
+		const url = 'http://localhost:4000/devices'
+
+		const response = await fetch(url, {
+			method: 'GET',
+			headers: { 'Content-Type': 'application/json' },
+		})
+
+		return await response.json()
 	}
 
 </script>
