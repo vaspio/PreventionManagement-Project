@@ -33,6 +33,7 @@ public class EdgeServer{
     
     // Keeping the mqtt client available globally
     static MqttAsyncClient sampleClient;
+    static String current_topic;
 
     // Tracking Mqtt messaging statistics
     static int messages_sent = 0;
@@ -165,12 +166,14 @@ public class EdgeServer{
             // Get message payload
             String messageFromPublish = new String(mqttMessage.getPayload());
             System.out.println("Topic:" + topic + " Message:" + messageFromPublish);
+
+            // Keep current topic
+            current_topic = topic;
             
             // Statistics
             messages_received++;
 
             fnHandlePublish(messageFromPublish);
-
         }
 
         /*
@@ -462,13 +465,24 @@ public class EdgeServer{
             String tempParsedDeviceId = jsonObject.get("DeviceID").toString();
             tempParsedDeviceId = "\"" + tempParsedDeviceId + "\"";
 
+            // Set device type for the db
+            String deviceType;
+            if(current_topic.startsWith("Android")){
+                deviceType = "android";
+            }
+            else{
+                deviceType = "iot";
+            }
+            deviceType = "\"" + deviceType + "\"";
+
+
             int danger_level = fnComputeDangerLevel(maxSmoke, maxGas, maxTemperature, maxRadiation);
             if(danger_level != 0){
                 fnAlertAboutDangerLevel(danger_level);
             }
 
             // Save new device information
-            String insertDeviceQuery = "INSERT INTO devices VALUES(NULL, " + tempParsedDeviceId + ", " + latitude + ", " + longitude + ", " + danger_level + ", " + battery + ") ON DUPLICATE KEY UPDATE latitude=" + latitude + ", longitude=" + longitude + ", danger_level=" + danger_level + ", battery=" + battery;
+            String insertDeviceQuery = "INSERT INTO devices VALUES(NULL, " + tempParsedDeviceId + ", " + deviceType + ", " + latitude + ", " + longitude + ", " + danger_level + ", " + battery + ") ON DUPLICATE KEY UPDATE latitude=" + latitude + ", longitude=" + longitude + ", danger_level=" + danger_level + ", battery=" + battery;
             executeVoidSqlQuery(insertDeviceQuery);
 
         } catch(ParseException pe) {
