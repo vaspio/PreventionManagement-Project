@@ -31,8 +31,10 @@ import javax.swing.*;
 
 public class EdgeServer{
     
+    // Keeping the mqtt client available globally
+    static MqttAsyncClient sampleClient;
+
     // Tracking Mqtt messaging statistics
-    
     static int messages_sent = 0;
     static int messages_sent_succesfully = 0;
     static int messages_received = 0;
@@ -92,7 +94,7 @@ public class EdgeServer{
         String broker = "tcp://localhost:1883";
 		String clientId = "JavaServer";
 		MqttClientPersistence persistence = null;
-		MqttAsyncClient sampleClient;
+		//MqttAsyncClient sampleClient;
 
 		// Set the topics
         String edge_iot = "IoT/+";
@@ -341,6 +343,8 @@ public class EdgeServer{
             danger_level = 2;
         }
 
+        System.out.println("Danger level: " + danger_level + " . Computed from smoke " + current_smoke + ", gas " + current_gas + ", temperature " + current_temperature + ", radiation " + current_radiation);
+
         return danger_level;
 
     }
@@ -404,32 +408,37 @@ public class EdgeServer{
                 System.out.println(object.getClass().getName());
 
                 arrayParsedType = objectJson.get("Sensor Type").toString();
-                arrayParsedType = "\"" + arrayParsedType + "\"";
                 arrayParsedNumber = objectJson.get("Sensor Number").toString();
-                arrayParsedNumber = "\"" + arrayParsedNumber + "\"";
                 arrayParsedValue = objectJson.get("Sensor Value").toString();
                 System.out.println(arrayParsedType);
                 double arrayParsedValueDouble = Double.parseDouble(arrayParsedValue);
-                System.out.println(arrayParsedType);
+                System.out.println(arrayParsedValueDouble);
 
                 // Calculate how the measurement affects current standings
-                if(arrayParsedType == "Smoke Sensor"){
+                if(arrayParsedType.equals("Smoke Sensor")){
                     if(arrayParsedValueDouble > maxSmoke){
                         maxSmoke = arrayParsedValueDouble;
                     }
-                } else if(arrayParsedType == "Gas Sensor"){
+                } else if(arrayParsedType.equals("Gas Sensor")){
+                    System.out.println(arrayParsedValueDouble);
                     if(arrayParsedValueDouble > maxGas){
                         maxGas = arrayParsedValueDouble;
                     }
-                } else if(arrayParsedType == "Temperature Sensor"){
+                } else if(arrayParsedType.equals("Temperature Sensor")){
+                    System.out.println(arrayParsedValueDouble);
                     if(arrayParsedValueDouble > maxTemperature){
                         maxTemperature = arrayParsedValueDouble;
                     }
-                } else if(arrayParsedType == "Radiation Sensor"){
+                } else if(arrayParsedType.equals("Radiation Sensor")){
+                    System.out.println(arrayParsedValueDouble);
                     if(arrayParsedValueDouble > maxRadiation){
                         maxRadiation = arrayParsedValueDouble;
                     }
                 }
+
+                // Prepare values for mysql
+                arrayParsedType = "\"" + arrayParsedType + "\"";
+                arrayParsedNumber = "\"" + arrayParsedNumber + "\"";
 
                 // Contruct SQL query
                 String timestamp = fnGetTimestamp();
@@ -454,7 +463,6 @@ public class EdgeServer{
             tempParsedDeviceId = "\"" + tempParsedDeviceId + "\"";
 
             int danger_level = fnComputeDangerLevel(maxSmoke, maxGas, maxTemperature, maxRadiation);
-            
             if(danger_level != 0){
                 fnAlertAboutDangerLevel(danger_level);
             }
@@ -500,8 +508,16 @@ public class EdgeServer{
         String publishMessageString = "The danger levels in the area are abnormal. Current danger level estimated: " + danger_level + " . Please get to one of the designated safe zones as soon as possible.";
         MqttMessage publishMqttMessage = new MqttMessage();
         publishMqttMessage.setPayload(publishMessageString.getBytes());
-        //sampleClient.publish("Android/", publishMqttMessage);
-
+        try {
+            System.out.println("Before publishing danger");
+            sampleClient.publish("Android/", publishMqttMessage);
+            System.out.println("After publishing danger");
+        }
+        catch (MqttException me) {
+            System.out.println("reason " + me.getReasonCode());
+            System.out.println("msg " + me.getMessage());
+            System.out.println("loc " + me.getLocalizedMessage());
+        }
     }
 
 }
