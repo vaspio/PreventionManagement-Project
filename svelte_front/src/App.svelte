@@ -1,5 +1,4 @@
 <script>
-	export let name;
 
 	/* Draw the map */
 	async function initMap(){ 
@@ -12,12 +11,9 @@
 		const mapElement = document.getElementById('project-map')
 		const map = new google.maps.Map( mapElement, { zoom: mapZoom, center: mapCenter })
 
-		// Self-refreshing drawings
+		// Call marker placing
 		drawMarkers(map)
 	}
-
-
-	
 
 
 	/* Draw markers on map */
@@ -26,38 +22,26 @@
 		// Get info from DB
 		var devices = await getDevicesInfo()
 		devices = devices.devices
-		console.log(devices)
-		/*
-		// Create markers and add lat/lng
-		var tempMarkerPosition = { lat: parseFloat(await locations[0]['latitude']), lng: parseFloat(await locations[0]['longitude']) }
-		var marker1 = new google.maps.Marker({
-			position: tempMarkerPosition,
-			map: map
-		})
-		tempMarkerPosition = { lat: parseFloat(await locations[1]['latitude']), lng: parseFloat(await locations[1]['longitude']) }
-		var marker2 = new google.maps.Marker({
-			position: tempMarkerPosition,
-			map: map
-		})
-		tempMarkerPosition = { lat: parseFloat(await locations[2]['latitude']), lng: parseFloat(await locations[2]['longitude']) }
-		var marker3 = new google.maps.Marker({
-			position: tempMarkerPosition,
-			map: map
+		
+		// Iterate through to create markers
+		var tempMarkerPosition, tempMarker;
+		devices.forEach(device => {
+			tempMarkerPosition = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
+			tempMarker = new google.maps.Marker({
+				position: tempMarkerPosition,
+				map: map
+			})
+			tempMarker.setMap(map)
 		})
 
-		// Add markers to the map
-		marker1.setMap(map)
-		marker2.setMap(map)
-		marker3.setMap(map)
+		drawArea(devices, map)
+		setTimeout(drawMarkers, 2000, map)
 
-		drawArea(locations, map)
-		setTimeout(drawMarkers, 3000, map)
-		*/
 	}
 
 
 	/* Draw area on map */
-	async function drawArea(locations, map){
+	async function drawArea(devices, map){
 		
 		// Settings for area
 		var strokeColor = "#FF0000"
@@ -66,16 +50,17 @@
 		var fillColor = "#FF0000"
 		var fillOpacity = 0.35
 
-		// Setup Coordinations for area
-		const triangleCoords = [
+		// Setup Coordinates for area
+		const triangleCoords = []
 
-			{ lat: parseFloat(await locations[0]['latitude']), lng: parseFloat(await locations[0]['longitude']) },
-			{ lat: parseFloat(await locations[1]['latitude']), lng: parseFloat(await locations[1]['longitude']) },
-			{ lat: parseFloat(await locations[2]['latitude']), lng: parseFloat(await locations[2]['longitude']) },
-		]
+		var coordinates;
+		devices.forEach(device => {
+			coordinates = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
+			triangleCoords.push(coordinates)
+		})
 
 		// Construct area polygon
-		const bermudaTriangle = new google.maps.Polygon({
+		const mapArea = new google.maps.Polygon({
 			paths: triangleCoords,
 			strokeColor: strokeColor,
 			strokeOpacity: strokeOpacity,
@@ -85,23 +70,11 @@
 		})
 
 		// Set the area onto the map
-		bermudaTriangle.setMap(map)
+		mapArea.setMap(map)
 	}
+
 
 	/* Getting devices information */
-	async function getEventsInfo(){
-
-		const url = 'http://localhost:4000/events'
-
-		const response = await fetch(url, {
-			method: 'GET',
-			headers: { 'Content-Type': 'application/json' },
-		})
-
-		return await response.json()
-	}
-
-	/* Getting events information */
 	async function getDevicesInfo(){
 
 		const url = 'http://localhost:4000/devices'
