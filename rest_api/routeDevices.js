@@ -12,7 +12,7 @@ router.get('/', (req, res, next) => {
 	})
 	connection.connect()
 
-	connection.query('SELECT * FROM devices ORDER BY ID DESC LIMIT 3', function (error, results, fields) {
+	connection.query('SELECT * FROM devices WHERE device_type = "iot"', function (error, results, fields) {
 		if (error){
 			res.status(500).json({
 				message: 'There was a problem with the database',

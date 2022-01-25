@@ -5,7 +5,7 @@
 
 		// Create map initial info
 		const mapCenter = { lat: 37.977707907538836, lng: 23.726837568280057 }
-		const mapZoom = 4
+		const mapZoom = 6
 
 		// Setup map element
 		const mapElement = document.getElementById('project-map')
@@ -24,18 +24,27 @@
 		devices = devices.devices
 		
 		// Iterate through to create markers
-		var tempMarkerPosition, tempMarker;
+		var tempMarkerPosition, tempMarker, danger_level, iconSrc;
 		devices.forEach(device => {
 			tempMarkerPosition = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
+			danger_level = parseInt(device['danger_level'])
+			if(danger_level == 2){
+				iconSrc = "danger_red_30.png"
+			} else if(danger_level == 1){
+				iconSrc = "danger_yellow_30.png"
+			} else {
+				iconSrc = "danger_black_30.png"
+			}
 			tempMarker = new google.maps.Marker({
 				position: tempMarkerPosition,
-				map: map
+				map: map,
+				icon: iconSrc
 			})
 			tempMarker.setMap(map)
 		})
 
 		drawArea(devices, map)
-		setTimeout(drawMarkers, 2000, map)
+		//setTimeout(drawMarkers, 2000, map)
 
 	}
 
@@ -51,17 +60,24 @@
 		var fillOpacity = 0.35
 
 		// Setup Coordinates for area
-		const triangleCoords = []
+		var polygonCoordinates = []
 
 		var coordinates;
 		devices.forEach(device => {
 			coordinates = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
-			triangleCoords.push(coordinates)
+			polygonCoordinates.push(coordinates)
 		})
-
-		// Construct area polygon
-		const mapArea = new google.maps.Polygon({
-			paths: triangleCoords,
+		var bounds = {
+			north: Math.max(polygonCoordinates[0]['lat'], polygonCoordinates[1]['lat']),
+			south: Math.min(polygonCoordinates[0]['lat'], polygonCoordinates[1]['lat']),
+			east: Math.max(polygonCoordinates[0]['lng'], polygonCoordinates[1]['lng']),
+			west: Math.min(polygonCoordinates[0]['lng'], polygonCoordinates[1]['lng']),
+    	}
+	
+		// Setting for area polygon
+		const mapArea = new google.maps.Rectangle({
+			bounds: bounds,
+			map: map,
 			strokeColor: strokeColor,
 			strokeOpacity: strokeOpacity,
 			strokeWeight: strokeWeight,
