@@ -63,7 +63,7 @@ public class EdgeServer{
     public static void main(String[] args) {
 
         // gui();
-        // fnGetLastEntry();
+        fnGetLastEntry();
     
         connectToServer();
     
@@ -95,7 +95,6 @@ public class EdgeServer{
         String broker = "tcp://localhost:1883";
 		String clientId = "JavaServer";
 		MqttClientPersistence persistence = null;
-		//MqttAsyncClient sampleClient;
 
 		// Set the topics
         String edge_iot = "IoT/+";
@@ -259,7 +258,7 @@ public class EdgeServer{
             conn = DriverManager.getConnection(url, user, password);   
         } 
         catch(SQLException e){
-            System.out.println("\ntes8");
+            System.out.println("\nCan't establish connection!");
             System.out.println(e.getMessage());
         }
 
@@ -352,8 +351,9 @@ public class EdgeServer{
 
     }
 
-
-    // Get last entry from database
+    /*
+    ** Get last entry from database
+    */
     static float[] fnGetLastEntry(){
         float longitude = 0;
         float latitude = 0;
@@ -361,22 +361,22 @@ public class EdgeServer{
         try{
             Connection con = fnGetDatabaseConnection();
 
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("select * from events");
+            Statement state = con.createStatement();
+            ResultSet results = state.executeQuery("select * from devices");
 
-            while(rs.next()){
-                longitude = rs.getFloat(3);
-                latitude = rs.getFloat(4);
+            while(results.next()){
+                latitude = results.getFloat(4);
+                longitude = results.getFloat(5);
             }
         }
         catch(SQLException e){
-            System.out.println("\ntes6");
+            System.out.println("\nFailed to execute query..");
             System.out.println(e.getMessage());
         }
 
-        System.out.println("gg" + longitude +" "+latitude);
+        System.out.println("Last Entry:" + latitude + ", " + longitude);
 
-        float[] pos = {longitude,latitude};
+        float[] pos = {latitude,longitude};
         return pos;
     }
 
@@ -395,7 +395,7 @@ public class EdgeServer{
 
             // Get the measurements array and go through it
             JSONArray tempParsedArray = (JSONArray) jsonObject.get("data");
-            Iterator<String> iterator = tempParsedArray.iterator();
+            Iterator<?> iterator = tempParsedArray.iterator();
             
             String arrayParsedType, arrayParsedNumber, arrayParsedValue;
             double maxSmoke = -1.0;
@@ -408,14 +408,14 @@ public class EdgeServer{
                 Object object = iterator.next();
                 JSONObject objectJson = (JSONObject) object;
                 System.out.println(object);
-                System.out.println(object.getClass().getName());
+                // System.out.println(object.getClass().getName());
 
                 arrayParsedType = objectJson.get("Sensor Type").toString();
                 arrayParsedNumber = objectJson.get("Sensor Number").toString();
                 arrayParsedValue = objectJson.get("Sensor Value").toString();
-                System.out.println(arrayParsedType);
+                // System.out.println(arrayParsedType);
                 double arrayParsedValueDouble = Double.parseDouble(arrayParsedValue);
-                System.out.println(arrayParsedValueDouble);
+                // System.out.println(arrayParsedValueDouble);
 
                 // Calculate how the measurement affects current standings
                 if(arrayParsedType.equals("Smoke Sensor")){
@@ -423,17 +423,17 @@ public class EdgeServer{
                         maxSmoke = arrayParsedValueDouble;
                     }
                 } else if(arrayParsedType.equals("Gas Sensor")){
-                    System.out.println(arrayParsedValueDouble);
+                    // System.out.println(arrayParsedValueDouble);
                     if(arrayParsedValueDouble > maxGas){
                         maxGas = arrayParsedValueDouble;
                     }
                 } else if(arrayParsedType.equals("Temperature Sensor")){
-                    System.out.println(arrayParsedValueDouble);
+                    // System.out.println(arrayParsedValueDouble);
                     if(arrayParsedValueDouble > maxTemperature){
                         maxTemperature = arrayParsedValueDouble;
                     }
                 } else if(arrayParsedType.equals("Radiation Sensor")){
-                    System.out.println(arrayParsedValueDouble);
+                    // System.out.println(arrayParsedValueDouble);
                     if(arrayParsedValueDouble > maxRadiation){
                         maxRadiation = arrayParsedValueDouble;
                     }
@@ -446,7 +446,6 @@ public class EdgeServer{
                 // Contruct SQL query
                 String timestamp = fnGetTimestamp();
                 String insertEventQuery = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + arrayParsedType + ", " + arrayParsedValueDouble + ", " + arrayParsedNumber + ")";
-                System.out.println(insertEventQuery);
                 executeVoidSqlQuery(insertEventQuery);
 
             }
@@ -482,7 +481,7 @@ public class EdgeServer{
             }
 
             // Save new device information
-            String insertDeviceQuery = "INSERT INTO devices VALUES(NULL, " + tempParsedDeviceId + ", " + deviceType + ", " + latitude + ", " + longitude + ", " + danger_level + ", " + battery + ") ON DUPLICATE KEY UPDATE latitude=" + latitude + ", longitude=" + longitude + ", danger_level=" + danger_level + ", battery=" + battery;
+            String insertDeviceQuery = "INSERT INTO devices VALUES(NULL, " + tempParsedDeviceId + ", " + deviceType + ", " + latitude + ", " + longitude + ", " + danger_level + ", " + battery + ") ON DUPLICATE KEY UPDATE latitude=" + latitude + ", longitude=" + longitude + ", danger_level=" + danger_level + ", battery=" + battery ;
             executeVoidSqlQuery(insertDeviceQuery);
 
         } catch(ParseException pe) {
@@ -504,8 +503,9 @@ public class EdgeServer{
 
         try {
             PreparedStatement statement = conn.prepareStatement(query);
-            int row = statement.executeUpdate();
-            System.out.println("mySQL affected rows" + row);
+            statement.executeUpdate();
+
+            // System.out.println("Executed query");
         }
         catch(SQLException ex){
             System.out.println(ex.getMessage());
@@ -522,6 +522,7 @@ public class EdgeServer{
         String publishMessageString = "The danger levels in the area are abnormal. Current danger level estimated: " + danger_level + " . Please get to one of the designated safe zones as soon as possible.";
         MqttMessage publishMqttMessage = new MqttMessage();
         publishMqttMessage.setPayload(publishMessageString.getBytes());
+
         try {
             System.out.println("Before publishing danger");
             sampleClient.publish("Android/", publishMqttMessage);
