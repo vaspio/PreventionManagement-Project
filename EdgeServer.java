@@ -481,7 +481,7 @@ public class EdgeServer{
             }
 
             // Save new device information
-            String insertDeviceQuery = "INSERT INTO devices VALUES(NULL, " + tempParsedDeviceId + ", " + deviceType + ", " + latitude + ", " + longitude + ", " + danger_level + ", " + battery + ") ON DUPLICATE KEY UPDATE latitude=" + latitude + ", longitude=" + longitude + ", danger_level=" + danger_level + ", battery=" + battery ;
+            String insertDeviceQuery = "INSERT INTO devices VALUES(NULL, " + tempParsedDeviceId + ", " + deviceType + ", " + latitude + ", " + longitude + ", " + danger_level + ", " + battery + ") ON DUPLICATE KEY UPDATE latitude=" + latitude + ", longitude=" + longitude + ", danger_level=" + danger_level + ", battery=" + battery;
             executeVoidSqlQuery(insertDeviceQuery);
 
         } catch(ParseException pe) {

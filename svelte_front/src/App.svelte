@@ -43,8 +43,10 @@
 			tempMarker.setMap(map)
 		})
 
-		drawArea(devices, map)
 		//setTimeout(drawMarkers, 2000, map)
+
+		// drawArea(devices, map)
+		drawCirle(devices, map);
 
 	}
 
@@ -55,7 +57,7 @@
 		// Settings for area
 		var strokeColor = "#FF0000"
 		var strokeOpacity = 0.8
-		var strokeWeight = 2
+		var strokeWeight = 0
 		var fillColor = "#FF0000"
 		var fillOpacity = 0.35
 
@@ -87,7 +89,53 @@
 
 		// Set the area onto the map
 		mapArea.setMap(map)
+
 	}
+
+
+	async function drawCirle(devices, map){
+		var deviceCoordinates = []
+
+		var coordinates;
+		devices.forEach(device => {
+			coordinates = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']), type: device['device_type'] }
+
+			// Make sure it is an IoT device
+			if(coordinates.type == "iot"){
+				deviceCoordinates.push(coordinates)
+			}
+		})
+
+		let green = "#00FF7F";
+		let red = "#FF6347";
+	
+		// Setting for the circles
+		for(let i=0; i<deviceCoordinates.length; i++){
+
+			var center = {
+				lat : deviceCoordinates[i]['lat'], 
+				lng : deviceCoordinates[i]['lng'],
+			}
+
+			// !! check if we want red or green 
+
+			const iotCircle = new google.maps.Circle({
+				strokeColor: "#32CD32",
+				strokeOpacity: 10,
+				strokeWeight: 0,
+				fillColor: green,
+				fillOpacity: 0.35,
+				map: map,
+				center: center,
+				radius: 100000,
+			})
+		}
+
+		// Set the area onto the map
+		iotCircle.setMap(map)
+
+	}
+
 
 
 	/* Getting devices information */
