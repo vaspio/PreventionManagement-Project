@@ -22,7 +22,12 @@
 		// Get info from DB
 		var devices = await getDevicesInfo()
 		devices = devices.devices
+
+		var events = await getEventsInfo()
+		events = events.events
+
 		var infowindow;
+		
 		// Iterate through to create markers
 		var tempMarkerPosition, tempMarker, danger_level, iconSrc;
 		devices.forEach(device => {
@@ -154,6 +159,18 @@
 	async function getDevicesInfo(){
 
 		const url = 'http://localhost:4000/devices'
+
+		const response = await fetch(url, {
+			method: 'GET',
+			headers: { 'Content-Type': 'application/json' },
+		})
+
+		return await response.json()
+	}
+
+	async function getEventsInfo(){
+
+		const url = 'http://localhost:4000/events'
 
 		const response = await fetch(url, {
 			method: 'GET',

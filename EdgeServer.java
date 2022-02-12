@@ -395,6 +395,34 @@ public class EdgeServer{
 
             // Get the measurements array and go through it
             JSONArray tempParsedArray = (JSONArray) jsonObject.get("data");
+
+
+            // Get the device related info
+            String tempParsedLatitude = jsonObject.get("Latitude").toString();
+            double latitude = Double.parseDouble(tempParsedLatitude);
+
+            String tempParsedLongitude = jsonObject.get("Longitude").toString();
+            double longitude = Double.parseDouble(tempParsedLongitude);
+
+            String tempParseBattery = jsonObject.get("Battery").toString();
+            double battery = Double.parseDouble(tempParseBattery);
+
+            String tempParsedDeviceId = jsonObject.get("DeviceID").toString();
+            tempParsedDeviceId = "\"" + tempParsedDeviceId + "\"";
+
+            // Set device type for the db
+            String deviceType;
+            if(current_topic.startsWith("Android")){
+                deviceType = "android";
+            }
+            else{
+                deviceType = "iot";
+            }
+            deviceType = "\"" + deviceType + "\"";
+
+
+
+            // Parse events
             Iterator<?> iterator = tempParsedArray.iterator();
             
             String arrayParsedType, arrayParsedNumber, arrayParsedValue;
@@ -445,35 +473,9 @@ public class EdgeServer{
 
                 // Contruct SQL query
                 String timestamp = fnGetTimestamp();
-                String insertEventQuery = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + arrayParsedType + ", " + arrayParsedValueDouble + ", " + arrayParsedNumber + ")";
+                String insertEventQuery = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + arrayParsedType + ", " + arrayParsedValueDouble + ", " + arrayParsedNumber + ", " + tempParsedDeviceId + ")";
                 executeVoidSqlQuery(insertEventQuery);
-
             }
-
-
-            // Get the device related info
-            String tempParsedLatitude = jsonObject.get("Latitude").toString();
-            double latitude = Double.parseDouble(tempParsedLatitude);
-
-            String tempParsedLongitude = jsonObject.get("Longitude").toString();
-            double longitude = Double.parseDouble(tempParsedLongitude);
-
-            String tempParseBattery = jsonObject.get("Battery").toString();
-            double battery = Double.parseDouble(tempParseBattery);
-
-            String tempParsedDeviceId = jsonObject.get("DeviceID").toString();
-            tempParsedDeviceId = "\"" + tempParsedDeviceId + "\"";
-
-            // Set device type for the db
-            String deviceType;
-            if(current_topic.startsWith("Android")){
-                deviceType = "android";
-            }
-            else{
-                deviceType = "iot";
-            }
-            deviceType = "\"" + deviceType + "\"";
-
 
             int danger_level = fnComputeDangerLevel(maxSmoke, maxGas, maxTemperature, maxRadiation);
             if(danger_level != 0){
@@ -483,6 +485,7 @@ public class EdgeServer{
             // Save new device information
             String insertDeviceQuery = "INSERT INTO devices VALUES(NULL, " + tempParsedDeviceId + ", " + deviceType + ", " + latitude + ", " + longitude + ", " + danger_level + ", " + battery + ") ON DUPLICATE KEY UPDATE latitude=" + latitude + ", longitude=" + longitude + ", danger_level=" + danger_level + ", battery=" + battery;
             executeVoidSqlQuery(insertDeviceQuery);
+
 
         } catch(ParseException pe) {
 
