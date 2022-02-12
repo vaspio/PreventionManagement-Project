@@ -22,7 +22,7 @@
 		// Get info from DB
 		var devices = await getDevicesInfo()
 		devices = devices.devices
-		
+		var infowindow;
 		// Iterate through to create markers
 		var tempMarkerPosition, tempMarker, danger_level, iconSrc;
 		devices.forEach(device => {
@@ -40,8 +40,20 @@
 				map: map,
 				icon: iconSrc
 			})
+			infowindow = new google.maps.InfoWindow({
+            	content:" "
+       		});
+
+			google.maps.event.addListener(tempMarker, 'click', function() {
+				infowindow.setContent('<h3>'+'Device Type : '+device.device_type+'</h3>'+'Lat :'+device.latitude+' & '+'Lng :'+device.longitude);
+				infowindow.open(map,this);
+   			});
+
+
 			tempMarker.setMap(map)
 		})
+
+		
 
 		//setTimeout(drawMarkers, 2000, map)
 
