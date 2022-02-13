@@ -22,37 +22,81 @@
 		// Get info from DB
 		var devices = await getDevicesInfo()
 		devices = devices.devices
-
 		var events = await getEventsInfo()
 		events = events.events
 
-		var infowindow;
-		
+
 		// Iterate through to create markers
-		var tempMarkerPosition, tempMarker, danger_level, iconSrc;
+		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id;
 		devices.forEach(device => {
 			tempMarkerPosition = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
-			danger_level = parseInt(device['danger_level'])
-			if(danger_level == 2){
-				iconSrc = "danger_red_30.png"
-			} else if(danger_level == 1){
-				iconSrc = "danger_yellow_30.png"
-			} else {
-				iconSrc = "danger_black_30.png"
-			}
-			tempMarker = new google.maps.Marker({
-				position: tempMarkerPosition,
-				map: map,
-				icon: iconSrc
-			})
-			infowindow = new google.maps.InfoWindow({
-            	content:" "
-       		});
+			device_id = device['device_id']
+			
+			// IoT
+			if(device.device_type == "iot"){
+				danger_level = parseInt(device['danger_level'])
+				if(danger_level == 2){
+					iconSrc = "danger_red_30.png"
+				} else if(danger_level == 1){
+					iconSrc = "danger_yellow_30.png"
+				} else {
+					iconSrc = "danger_black_30.png"
+				}
 
-			google.maps.event.addListener(tempMarker, 'click', function() {
-				infowindow.setContent('<h3>'+'Device Type : '+device.device_type+'</h3>'+'Lat :'+device.latitude+' & '+'Lng :'+device.longitude);
-				infowindow.open(map,this);
-   			});
+				tempMarker = new google.maps.Marker({
+					position: tempMarkerPosition,
+					map: map,
+					icon: iconSrc
+				})
+				infowindow = new google.maps.InfoWindow({
+					content:" "
+				});
+
+				// infowindow content
+				let content = "<h3> IoT Device </h3> Latitude :" + device_id + " & Longtitude :" + tempMarkerPosition.lng
+				let fin = false
+	
+				events.forEach(event => {
+					if(fin == false){
+						dev_id = event['device_id']
+						
+						if(dev_id == device.device_id){
+							infos = { type: event['type'], value: parseFloat(event['value']), sensor_id: event['sensor_id'] }
+							
+							// print sensor type and value
+							content = content + " <br>"+ infos.type + ": " + infos.value 
+							
+							if(infos.sensor_id == 0){
+								fin = true
+							}
+						}
+
+						google.maps.event.addListener(tempMarker, 'click', function() {
+							infowindow.setContent(content);
+							infowindow.open(map,this);
+						});
+					}
+				})
+			}   
+			// Android
+			else{
+				iconSrc = "smartphone.png"
+				
+				tempMarker = new google.maps.Marker({
+					position: tempMarkerPosition,
+					map: map,
+					icon: iconSrc
+				})
+				infowindow = new google.maps.InfoWindow({
+					content:" "
+				});
+
+				google.maps.event.addListener(tempMarker, 'click', function() {
+					infowindow.setContent("<h3> Android Device </h3> Latitude :" + tempMarkerPosition.lat + " & Longtitude :" + tempMarkerPosition.lng + "<br>Device ID: " + device_id);
+					infowindow.open(map,this);
+				});
+			}
+
 
 
 			tempMarker.setMap(map)

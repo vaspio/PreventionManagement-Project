@@ -61,12 +61,9 @@ public class EdgeServer{
 
     // Init server
     public static void main(String[] args) {
-
         // gui();
-        fnGetLastEntry();
-    
+
         connectToServer();
-    
     }
 
 
@@ -109,7 +106,7 @@ public class EdgeServer{
             connOpts.setCleanSession(true);
             connOpts.setMaxInflight(3000);
 
-            // useless?
+            // useless?     probably
             connOpts.setUserName("emqx_test");
             connOpts.setPassword("emqx_test_password".toCharArray());
 
