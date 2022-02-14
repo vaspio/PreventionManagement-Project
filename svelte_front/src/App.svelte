@@ -53,7 +53,7 @@
 				});
 
 				// infowindow content
-				let content = "<h3> IoT Device </h3> Latitude :" + device_id + " & Longtitude :" + tempMarkerPosition.lng
+				let content = "<h3> IoT Device </h3> Latitude :" + device['device_id'] + " & Longtitude :" + tempMarkerPosition.lng
 				let fin = false
 	
 				events.forEach(event => {
@@ -92,7 +92,7 @@
 				});
 
 				google.maps.event.addListener(tempMarker, 'click', function() {
-					infowindow.setContent("<h3> Android Device </h3> Latitude :" + tempMarkerPosition.lat + " & Longtitude :" + tempMarkerPosition.lng + "<br>Device ID: " + device_id);
+					infowindow.setContent("<h3> Android Device </h3> Latitude :" + device['latitude'] + " & Longtitude :" + device['longitude'] + "<br>Device ID: " + device['device_id']);
 					infowindow.open(map,this);
 				});
 			}
@@ -103,7 +103,6 @@
 		})
 
 		
-
 		//setTimeout(drawMarkers, 2000, map)
 
 		// drawArea(devices, map)
