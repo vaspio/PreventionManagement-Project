@@ -27,13 +27,32 @@
 
 
 		// Iterate through to create markers
-		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id;
+		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id,android_lat,android_lng;
 		devices.forEach(device => {
 			tempMarkerPosition = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
 			device_id = device['device_id']
-			
-			// IoT
-			if(device.device_type == "iot"){
+
+			// Android
+			if(device.device_type == "android"){
+				iconSrc = "smartphone.png"
+				
+				tempMarker = new google.maps.Marker({
+					position: tempMarkerPosition,
+					map: map,
+					icon: iconSrc
+				})
+				infowindow = new google.maps.InfoWindow({
+					content:" "
+				});
+
+				google.maps.event.addListener(tempMarker, 'click', function() {
+					infowindow.setContent("<h3> Android Device </h3> Latitude :" + device['latitude'] + " & Longtitude :" + device['longitude'] + "<br>Device ID: " + device['device_id']);
+					infowindow.open(map,this);
+				});
+				android_lat=tempMarkerPosition.lat;
+				android_lng=tempMarkerPosition.lng;
+			}
+			else{
 				danger_level = parseInt(device['danger_level'])
 				if(danger_level == 2){
 					iconSrc = "danger_red_30.png"
@@ -53,7 +72,7 @@
 				});
 
 				// infowindow content
-				let content = "<h3> IoT Device </h3> Latitude :" + device['device_id'] + " & Longtitude :" + tempMarkerPosition.lng
+				let content = "<h3> IoT Device </h3> Latitude :" + tempMarkerPosition.lat + " & Longtitude :" + tempMarkerPosition.lng
 				let fin = false
 	
 				events.forEach(event => {
@@ -75,29 +94,25 @@
 							infowindow.setContent(content);
 							infowindow.open(map,this);
 						});
+						//////////////
 					}
 				})
+				if(danger_level==2){
+					var line = new google.maps.Polyline({
+								path: [
+									new google.maps.LatLng(android_lat,android_lng),
+									new google.maps.LatLng((tempMarkerPosition.lat), (tempMarkerPosition.lng))
+								],
+								strokeColor: "#50C878",
+								strokeOpacity: 1.0,
+								strokeWeight: 5,
+								map: map
+							});
+					// Calculate the distance in kilometers between markers
+					var kms=(getDistanceFromLatLonInKm(android_lat,android_lng,tempMarkerPosition.lat,tempMarkerPosition.lng));
+
+				}
 			}   
-			// Android
-			else{
-				iconSrc = "smartphone.png"
-				
-				tempMarker = new google.maps.Marker({
-					position: tempMarkerPosition,
-					map: map,
-					icon: iconSrc
-				})
-				infowindow = new google.maps.InfoWindow({
-					content:" "
-				});
-
-				google.maps.event.addListener(tempMarker, 'click', function() {
-					infowindow.setContent("<h3> Android Device </h3> Latitude :" + device['latitude'] + " & Longtitude :" + device['longitude'] + "<br>Device ID: " + device['device_id']);
-					infowindow.open(map,this);
-				});
-			}
-
-
 
 			tempMarker.setMap(map)
 		})
@@ -108,6 +123,24 @@
 		// drawArea(devices, map)
 		drawCirle(devices, map);
 
+	}
+
+	function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+		var R = 6371; // Radius of the earth in km
+		var dLat = deg2rad(lat2-lat1);  // deg2rad below
+		var dLon = deg2rad(lon2-lon1); 
+		var a = 
+			Math.sin(dLat/2) * Math.sin(dLat/2) +
+			Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+			Math.sin(dLon/2) * Math.sin(dLon/2)
+			; 
+		var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+		var d = R * c; // Distance in km
+		return d;
+	}
+
+	function deg2rad(deg) {
+		return deg * (Math.PI/180)
 	}
 
 
