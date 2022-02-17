@@ -409,78 +409,82 @@ public class EdgeServer{
 
             // Set device type for the db
             String deviceType;
+            int danger_level = 0;
+            int status = 1;
+
             if(current_topic.startsWith("Android")){
                 deviceType = "android";
             }
             else{
                 deviceType = "iot";
+
+                // Parse events
+                Iterator<?> iterator = tempParsedArray.iterator();
+                
+                String arrayParsedType, arrayParsedNumber, arrayParsedValue;
+                double maxSmoke = -1.0;
+                double maxGas = -1.0;
+                double maxTemperature = -1.0;
+                double maxRadiation = -1.0;
+
+                while(iterator.hasNext()) {
+
+                    Object object = iterator.next();
+                    JSONObject objectJson = (JSONObject) object;
+                    System.out.println(object);
+                    // System.out.println(object.getClass().getName());
+
+                    arrayParsedType = objectJson.get("Sensor Type").toString();
+                    arrayParsedNumber = objectJson.get("Sensor Number").toString();
+                    arrayParsedValue = objectJson.get("Sensor Value").toString();
+                    // System.out.println(arrayParsedType);
+                    double arrayParsedValueDouble = Double.parseDouble(arrayParsedValue);
+                    // System.out.println(arrayParsedValueDouble);
+
+                    // Calculate how the measurement affects current standings
+                    if(arrayParsedType.equals("Smoke Sensor")){
+                        if(arrayParsedValueDouble > maxSmoke){
+                            maxSmoke = arrayParsedValueDouble;
+                        }
+                    } else if(arrayParsedType.equals("Gas Sensor")){
+                        // System.out.println(arrayParsedValueDouble);
+                        if(arrayParsedValueDouble > maxGas){
+                            maxGas = arrayParsedValueDouble;
+                        }
+                    } else if(arrayParsedType.equals("Temperature Sensor")){
+                        // System.out.println(arrayParsedValueDouble);
+                        if(arrayParsedValueDouble > maxTemperature){
+                            maxTemperature = arrayParsedValueDouble;
+                        }
+                    } else if(arrayParsedType.equals("Radiation Sensor")){
+                        // System.out.println(arrayParsedValueDouble);
+                        if(arrayParsedValueDouble > maxRadiation){
+                            maxRadiation = arrayParsedValueDouble;
+                        }
+                    }
+
+                    // Prepare values for mysql
+                    arrayParsedType = "\"" + arrayParsedType + "\"";
+                    arrayParsedNumber = "\"" + arrayParsedNumber + "\"";
+
+                    // Contruct SQL query
+                    String timestamp = fnGetTimestamp();
+                    String insertEventQuery = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + arrayParsedType + ", " + arrayParsedValueDouble + ", " + arrayParsedNumber + ", " + tempParsedDeviceId + ")";
+                    executeVoidSqlQuery(insertEventQuery);
+                }
+
+                danger_level = fnComputeDangerLevel(maxSmoke, maxGas, maxTemperature, maxRadiation);
+                if(danger_level != 0){
+                    fnAlertAboutDangerLevel(danger_level);
+                }
             }
+
             deviceType = "\"" + deviceType + "\"";
 
 
 
-            // Parse events
-            Iterator<?> iterator = tempParsedArray.iterator();
-            
-            String arrayParsedType, arrayParsedNumber, arrayParsedValue;
-            double maxSmoke = -1.0;
-            double maxGas = -1.0;
-            double maxTemperature = -1.0;
-            double maxRadiation = -1.0;
-
-            while(iterator.hasNext()) {
-
-                Object object = iterator.next();
-                JSONObject objectJson = (JSONObject) object;
-                System.out.println(object);
-                // System.out.println(object.getClass().getName());
-
-                arrayParsedType = objectJson.get("Sensor Type").toString();
-                arrayParsedNumber = objectJson.get("Sensor Number").toString();
-                arrayParsedValue = objectJson.get("Sensor Value").toString();
-                // System.out.println(arrayParsedType);
-                double arrayParsedValueDouble = Double.parseDouble(arrayParsedValue);
-                // System.out.println(arrayParsedValueDouble);
-
-                // Calculate how the measurement affects current standings
-                if(arrayParsedType.equals("Smoke Sensor")){
-                    if(arrayParsedValueDouble > maxSmoke){
-                        maxSmoke = arrayParsedValueDouble;
-                    }
-                } else if(arrayParsedType.equals("Gas Sensor")){
-                    // System.out.println(arrayParsedValueDouble);
-                    if(arrayParsedValueDouble > maxGas){
-                        maxGas = arrayParsedValueDouble;
-                    }
-                } else if(arrayParsedType.equals("Temperature Sensor")){
-                    // System.out.println(arrayParsedValueDouble);
-                    if(arrayParsedValueDouble > maxTemperature){
-                        maxTemperature = arrayParsedValueDouble;
-                    }
-                } else if(arrayParsedType.equals("Radiation Sensor")){
-                    // System.out.println(arrayParsedValueDouble);
-                    if(arrayParsedValueDouble > maxRadiation){
-                        maxRadiation = arrayParsedValueDouble;
-                    }
-                }
-
-                // Prepare values for mysql
-                arrayParsedType = "\"" + arrayParsedType + "\"";
-                arrayParsedNumber = "\"" + arrayParsedNumber + "\"";
-
-                // Contruct SQL query
-                String timestamp = fnGetTimestamp();
-                String insertEventQuery = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + arrayParsedType + ", " + arrayParsedValueDouble + ", " + arrayParsedNumber + ", " + tempParsedDeviceId + ")";
-                executeVoidSqlQuery(insertEventQuery);
-            }
-
-            int danger_level = fnComputeDangerLevel(maxSmoke, maxGas, maxTemperature, maxRadiation);
-            if(danger_level != 0){
-                fnAlertAboutDangerLevel(danger_level);
-            }
-
             // Save new device information
-            String insertDeviceQuery = "INSERT INTO devices VALUES(NULL, " + tempParsedDeviceId + ", " + deviceType + ", " + latitude + ", " + longitude + ", " + danger_level + ", " + battery + ") ON DUPLICATE KEY UPDATE latitude=" + latitude + ", longitude=" + longitude + ", danger_level=" + danger_level + ", battery=" + battery;
+            String insertDeviceQuery = "INSERT INTO devices VALUES(NULL, " + tempParsedDeviceId + ", " + deviceType + ", " + latitude + ", " + longitude + ", " + danger_level + ", " + battery + ", " + status + ") ON DUPLICATE KEY UPDATE latitude=" + latitude + ", longitude=" + longitude + ", danger_level=" + danger_level + ", battery=" + battery;
             executeVoidSqlQuery(insertDeviceQuery);
 
 
