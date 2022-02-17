@@ -10,14 +10,14 @@
 		// Setup map element
 		const mapElement = document.getElementById('project-map')
 		const map = new google.maps.Map( mapElement, { zoom: mapZoom, center: mapCenter })
-
+		var Counter=0;
 		// Call marker placing
-		drawMarkers(map)
+		drawMarkers(map,Counter)
 	}
 
 
 	/* Draw markers on map */
-	async function drawMarkers(map){
+	async function drawMarkers(map,Counter){
 		
 		// Get info from DB
 		var devices = await getDevicesInfo()
@@ -28,7 +28,7 @@
 
 		// Iterate through to create markers
 		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id,android_lat,android_lng,iot_lat,iot_lng,line,line1;
-		var Counter=0;
+		
 		devices.forEach(device => {
 			tempMarkerPosition = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
 			device_id = device['device_id']
@@ -105,6 +105,9 @@
 						line.getPath().removeAt();
 						line1.getPath().removeAt();
 					}
+					else if (Counter==1){
+						line.getPath().removeAt();
+					}
 					Counter=Counter+1;
 					if(Counter>1){
 						line = new google.maps.Polyline({
@@ -129,7 +132,7 @@
 							map: map
 						});
 					}
-					else if(Counter==2){
+					else if (Counter==1){
 						line = new google.maps.Polyline({
 							path: [
 								new google.maps.LatLng(android_lat,android_lng),
@@ -143,17 +146,19 @@
 					}
 					// Calculate the distance in kilometers between markers
 					var kms=(getDistanceFromLatLonInKm(android_lat,android_lng,tempMarkerPosition.lat,tempMarkerPosition.lng));
+					
+				}
+				if(danger_level==2){
 					iot_lat=tempMarkerPosition.lat;
 					iot_lng=tempMarkerPosition.lng;
 				}
-		
 			}   
 
 			tempMarker.setMap(map)
 		})
 
 		
-		//setTimeout(drawMarkers, 2000, map)
+		setTimeout(drawMarkers, 2000, map)
 
 		// drawArea(devices, map)
 		drawCirle(devices, map);
