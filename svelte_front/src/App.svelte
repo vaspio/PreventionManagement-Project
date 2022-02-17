@@ -27,7 +27,7 @@
 
 
 		// Iterate through to create markers
-		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id,android_lat,android_lng;
+		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id,android_lat,android_lng,iot_lat,iot_lng;
 		devices.forEach(device => {
 			tempMarkerPosition = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
 			device_id = device['device_id']
@@ -67,6 +67,7 @@
 					map: map,
 					icon: iconSrc
 				})
+				
 				infowindow = new google.maps.InfoWindow({
 					content:" "
 				});
@@ -94,13 +95,13 @@
 							infowindow.setContent(content);
 							infowindow.open(map,this);
 						});
-						//////////////
 					}
 				})
+				
 				if(danger_level==2){
 					var line = new google.maps.Polyline({
 								path: [
-									new google.maps.LatLng(android_lat,android_lng),
+									new google.maps.LatLng(iot_lat,iot_lng),
 									new google.maps.LatLng((tempMarkerPosition.lat), (tempMarkerPosition.lng))
 								],
 								strokeColor: "#50C878",
@@ -108,9 +109,24 @@
 								strokeWeight: 5,
 								map: map
 							});
+
+					var line = new google.maps.Polyline({
+						path: [
+							new google.maps.LatLng(android_lat,android_lng),
+							new google.maps.LatLng((tempMarkerPosition.lat+iot_lat)/2, (tempMarkerPosition.lng+iot_lng)/2)
+						],
+						strokeColor: "#50C878",
+						strokeOpacity: 1.0,
+						strokeWeight: 5,
+						map: map
+					});
 					// Calculate the distance in kilometers between markers
 					var kms=(getDistanceFromLatLonInKm(android_lat,android_lng,tempMarkerPosition.lat,tempMarkerPosition.lng));
 
+				}
+				if(danger_level==2){
+					iot_lat=tempMarkerPosition.lat;
+					iot_lng=tempMarkerPosition.lng;
 				}
 			}   
 
@@ -220,7 +236,7 @@
 				fillOpacity: 0.35,
 				map: map,
 				center: center,
-				radius: 100000,
+				radius: 10000,
 			})
 		}
 
