@@ -10,24 +10,25 @@
 		// Setup map element
 		const mapElement = document.getElementById('project-map')
 		const map = new google.maps.Map( mapElement, { zoom: mapZoom, center: mapCenter })
-		var Counter=0;
 		// Call marker placing
-		drawMarkers(map,Counter)
+		drawMarkers(map)
 	}
-
-
+	
+	
 	/* Draw markers on map */
-	async function drawMarkers(map,Counter){
+	async function drawMarkers(map){
 		
 		// Get info from DB
 		var devices = await getDevicesInfo()
 		devices = devices.devices
 		var events = await getEventsInfo()
 		events = events.events
-
-
+		
+		
 		// Iterate through to create markers
 		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id,android_lat,android_lng,iot_lat,iot_lng,line,line1;
+		var draw_poly = false
+		var draw2_poly = false
 		
 		devices.forEach(device => {
 			tempMarkerPosition = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
@@ -99,40 +100,9 @@
 					}
 				})
 				
-				if(danger_level==2){
-					if(Counter>=2){
-						//// DELETING LINES///////
-						line.getPath().removeAt();
-						line1.getPath().removeAt();
-					}
-					else if (Counter==1){
-						line.getPath().removeAt();
-					}
-					Counter=Counter+1;
-					if(Counter>1){
-						line = new google.maps.Polyline({
-							path: [
-								new google.maps.LatLng(iot_lat,iot_lng),
-								new google.maps.LatLng((tempMarkerPosition.lat), (tempMarkerPosition.lng))
-							],
-							strokeColor: "#50C878",
-							strokeOpacity: 1.0,
-							strokeWeight: 5,
-							map: map
-						});
+				if(danger_level == 2){
 
-						line1 = new google.maps.Polyline({
-							path: [
-								new google.maps.LatLng(android_lat,android_lng),
-								new google.maps.LatLng((tempMarkerPosition.lat+iot_lat)/2, (tempMarkerPosition.lng+iot_lng)/2)
-							],
-							strokeColor: "#50C878",
-							strokeOpacity: 1.0,
-							strokeWeight: 5,
-							map: map
-						});
-					}
-					else if (Counter==1){
+					if(!draw_poly){
 						line = new google.maps.Polyline({
 							path: [
 								new google.maps.LatLng(android_lat,android_lng),
@@ -143,12 +113,44 @@
 							strokeWeight: 5,
 							map: map
 						});
+						draw_poly = true
 					}
+					else{
+						line.getPath().removeAt();
+
+						if(draw2_poly){
+							line1.getPath().removeAt();
+						}
+
+						line = new google.maps.Polyline({
+							path: [
+								new google.maps.LatLng(iot_lat,iot_lng),
+								new google.maps.LatLng((tempMarkerPosition.lat), (tempMarkerPosition.lng))
+							],
+							strokeColor: "#50C878",
+							strokeOpacity: 1.0,
+							strokeWeight: 5,
+							map: map
+						});
+	
+						line1 = new google.maps.Polyline({
+							path: [
+								new google.maps.LatLng(android_lat,android_lng),
+								new google.maps.LatLng((tempMarkerPosition.lat+iot_lat)/2, (tempMarkerPosition.lng+iot_lng)/2)
+							],
+							strokeColor: "#50C878",
+							strokeOpacity: 1.0,
+							strokeWeight: 5,
+							map: map
+	
+						});
+
+						draw2_poly = true
+					}
+					
 					// Calculate the distance in kilometers between markers
 					var kms=(getDistanceFromLatLonInKm(android_lat,android_lng,tempMarkerPosition.lat,tempMarkerPosition.lng));
 					
-				}
-				if(danger_level==2){
 					iot_lat=tempMarkerPosition.lat;
 					iot_lng=tempMarkerPosition.lng;
 				}
@@ -158,7 +160,7 @@
 		})
 
 		
-		setTimeout(drawMarkers, 2000, map)
+		// setTimeout(drawMarkers, 2000, map)
 
 		// drawArea(devices, map)
 		drawCirle(devices, map);
