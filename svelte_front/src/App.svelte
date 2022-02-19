@@ -16,6 +16,11 @@
 	
 	
 	/* Draw markers on map */
+	var keep_poly = []
+	var keep_markers = []
+	var draw_poly = false;
+	var draw2_poly = false;
+	var line,line2;
 	async function drawMarkers(map){
 		
 		// Get info from DB
@@ -26,9 +31,7 @@
 		
 		
 		// Iterate through to create markers
-		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id,android_lat,android_lng,iot_lat,iot_lng,line,line1;
-		var draw_poly = false
-		var draw2_poly = false
+		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id,android_lat,android_lng,iot_lat,iot_lng;
 		
 		devices.forEach(device => {
 			tempMarkerPosition = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
@@ -48,7 +51,7 @@
 				});
 
 				google.maps.event.addListener(tempMarker, 'click', function() {
-					infowindow.setContent("<h3> Android Device </h3> Latitude :" + device['latitude'] + " & Longtitude :" + device['longitude'] + "<br>Device ID: " + device['device_id']);
+					infowindow.setContent("<h3> Android Device </h3> Latitude: " + device['latitude'] + " & Longtitude: " + device['longitude'] + "<br>Device ID: " + device['device_id']);
 					infowindow.open(map,this);
 				});
 				android_lat=tempMarkerPosition.lat;
@@ -75,7 +78,7 @@
 				});
 
 				// infowindow content
-				let content = "<h3> IoT Device </h3> Latitude :" + tempMarkerPosition.lat + " & Longtitude :" + tempMarkerPosition.lng
+				let content = "<h3> IoT Device </h3> Latitude: " + tempMarkerPosition.lat + " & Longtitude: " + tempMarkerPosition.lng
 				let fin = false
 	
 				events.forEach(event => {
@@ -102,57 +105,63 @@
 				
 				if(danger_level == 2){
 
-					if(!draw_poly){
-						line = new google.maps.Polyline({
-							path: [
-								new google.maps.LatLng(android_lat,android_lng),
-								new google.maps.LatLng(tempMarkerPosition.lat, tempMarkerPosition.lng)
-							],
-							strokeColor: "#50C878",
-							strokeOpacity: 1.0,
-							strokeWeight: 5,
-							map: map
-						});
-						draw_poly = true
-					}
-					else{
-						line.getPath().removeAt();
+					if(!(keep_poly.includes(tempMarkerPosition.lat))){
+						keep_poly.push(tempMarkerPosition.lat)
+						console.log(keep_poly)
 
-						if(draw2_poly){
-							line1.getPath().removeAt();
+						if(!draw_poly){
+							line = new google.maps.Polyline({
+								path: [
+									new google.maps.LatLng(android_lat,android_lng),
+									new google.maps.LatLng(tempMarkerPosition.lat, tempMarkerPosition.lng)
+								],
+								strokeColor: "#50C878",
+								strokeOpacity: 1.0,
+								strokeWeight: 5,
+								map: map
+							});
+							draw_poly = true
 						}
+						else{
+							line.getPath().removeAt();
 
-						line = new google.maps.Polyline({
-							path: [
-								new google.maps.LatLng(iot_lat,iot_lng),
-								new google.maps.LatLng((tempMarkerPosition.lat), (tempMarkerPosition.lng))
-							],
-							strokeColor: "#50C878",
-							strokeOpacity: 1.0,
-							strokeWeight: 5,
-							map: map
-						});
-	
-						line1 = new google.maps.Polyline({
-							path: [
-								new google.maps.LatLng(android_lat,android_lng),
-								new google.maps.LatLng((tempMarkerPosition.lat+iot_lat)/2, (tempMarkerPosition.lng+iot_lng)/2)
-							],
-							strokeColor: "#50C878",
-							strokeOpacity: 1.0,
-							strokeWeight: 5,
-							map: map
-	
-						});
+							if(draw2_poly){
+								line2.getPath().removeAt();
+							}
 
-						draw2_poly = true
+							line = new google.maps.Polyline({
+								path: [
+									new google.maps.LatLng(iot_lat,iot_lng),
+									new google.maps.LatLng((tempMarkerPosition.lat), (tempMarkerPosition.lng))
+								],
+								strokeColor: "#50C878",
+								strokeOpacity: 1.0,
+								strokeWeight: 5,
+								map: map
+							});
+		
+							line2 = new google.maps.Polyline({
+								path: [
+									new google.maps.LatLng(android_lat,android_lng),
+									new google.maps.LatLng((tempMarkerPosition.lat+iot_lat)/2, (tempMarkerPosition.lng+iot_lng)/2)
+								],
+								strokeColor: "#50C878",
+								strokeOpacity: 1.0,
+								strokeWeight: 5,
+								map: map
+		
+							});
+
+							draw2_poly = true
+						}
+						
+						// Calculate the distance in kilometers between markers
+						var kms=(getDistanceFromLatLonInKm(android_lat,android_lng,tempMarkerPosition.lat,tempMarkerPosition.lng));
+						
+						iot_lat=tempMarkerPosition.lat;
+						iot_lng=tempMarkerPosition.lng;
 					}
 					
-					// Calculate the distance in kilometers between markers
-					var kms=(getDistanceFromLatLonInKm(android_lat,android_lng,tempMarkerPosition.lat,tempMarkerPosition.lng));
-					
-					iot_lat=tempMarkerPosition.lat;
-					iot_lng=tempMarkerPosition.lng;
 				}
 			}   
 
@@ -160,7 +169,7 @@
 		})
 
 		
-		// setTimeout(drawMarkers, 2000, map)
+		setTimeout(drawMarkers, 2000, map)
 
 		// drawArea(devices, map)
 		drawCirle(devices, map);
@@ -228,6 +237,7 @@
 	}
 
 
+	var keep_circles = []
 	async function drawCirle(devices, map){
 		var deviceCoordinates = []
 
@@ -252,22 +262,28 @@
 				lng : deviceCoordinates[i]['lng'],
 			}
 
-			// !! check if we want red or green 
+			if(!(keep_circles.includes(center.lat))){
+				keep_circles.push(center.lat)
+				// console.log(keep_circles)
+				
 
-			const iotCircle = new google.maps.Circle({
-				strokeColor: "#32CD32",
-				strokeOpacity: 10,
-				strokeWeight: 0,
-				fillColor: green,
-				fillOpacity: 0.35,
-				map: map,
-				center: center,
-				radius: 10000,
-			})
+				// !! check if we want red or green 
+
+				var iotCircle = new google.maps.Circle({
+					strokeColor: "#32CD32",
+					strokeOpacity: 10,
+					strokeWeight: 0,
+					fillColor: green,
+					fillOpacity: 0.35,
+					map: map,
+					center: center,
+					radius: 10000,
+				})
+				// Set the area onto the map
+				iotCircle.setMap(map)
+			}
 		}
 
-		// Set the area onto the map
-		iotCircle.setMap(map)
 
 	}
 
