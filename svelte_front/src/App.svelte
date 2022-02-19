@@ -60,6 +60,42 @@
 			}
 			else{
 
+				danger_level = parseInt(device['danger_level'])
+
+				if(keep_markers.includes(tempMarkerPosition.lat)){
+
+					// tempMarker.setMap(null)
+					tempMarker = null
+
+					// keep_markers.pop(tempMarkerPosition.lat)
+				}
+				else{
+					keep_markers.push(tempMarkerPosition.lat)
+
+				}
+
+				console.log(keep_markers)
+				
+				if(danger_level == 2){
+					iconSrc = "danger_red_30.png"
+				} else if(danger_level == 1){
+					iconSrc = "danger_yellow_30.png"
+				} else {
+					iconSrc = "danger_black_30.png"
+				}
+
+				tempMarker = new google.maps.Marker({
+					position: tempMarkerPosition,
+					map: map,
+					icon: iconSrc
+				})
+				
+				infowindow = new google.maps.InfoWindow({
+					content:" "
+				});
+			
+			
+				
 				// infowindow content
 				let content = "<h3> IoT Device </h3> Latitude: " + tempMarkerPosition.lat + " & Longtitude: " + tempMarkerPosition.lng
 				let fin = false
@@ -79,40 +115,13 @@
 							}
 						}
 
+						google.maps.event.addListener(tempMarker, 'click', function() {
+							infowindow.setContent(content);
+							infowindow.open(map,this);
+						});
+
 					}
 				})
-
-
-				danger_level = parseInt(device['danger_level'])
-				
-				if(!(keep_markers.includes(tempMarkerPosition.lat, danger_level, infos.value))){
-					keep_markers.push(tempMarkerPosition.lat, danger_level, infos.value)
-					console.log(keep_markers)
-					
-					if(danger_level == 2){
-						iconSrc = "danger_red_30.png"
-					} else if(danger_level == 1){
-						iconSrc = "danger_yellow_30.png"
-					} else {
-						iconSrc = "danger_black_30.png"
-					}
-
-					tempMarker = new google.maps.Marker({
-						position: tempMarkerPosition,
-						map: map,
-						icon: iconSrc
-					})
-					
-					infowindow = new google.maps.InfoWindow({
-						content:" "
-					});
-				
-				
-					google.maps.event.addListener(tempMarker, 'click', function() {
-						infowindow.setContent(content);
-						infowindow.open(map,this);
-					});
-				}
 
 			
 				
@@ -180,11 +189,46 @@
 					
 					
 				}
+				// else{
+				// 	if(draw2_poly){
+				// 		var lng
+				// 		var arr = line.getPath()
+				// 		var lat = arr.getAt(0).lat()
+
+				// 		if(tempMarkerPosition.lat == lat){
+				// 			lat = arr.getAt(1).lat()
+				// 			lng = arr.getAt(1).lng()
+				// 		}
+				// 		else{
+				// 			lng = arr.getAt(0).lng()
+
+				// 		}
+
+				// 		line.getPath().removeAt();
+				// 		line2.getPath().removeAt();
+						
+				// 		line = new google.maps.Polyline({
+				// 			path: [
+				// 				new google.maps.LatLng(android_lat,android_lng),
+				// 				new google.maps.LatLng(lat, lng)
+				// 			],
+				// 			strokeColor: "#50C878",
+				// 			strokeOpacity: 1.0,
+				// 			strokeWeight: 5,
+				// 			map: map
+				// 		});
+
+				// 		draw2_poly = false
+				// 		iot_lat=tempMarkerPosition.lat;
+				// 		iot_lng=tempMarkerPosition.lng;
+				// 	}
+				// }
 		
 			}   
 
 			tempMarker.setMap(map)
 		})
+
 
 		
 		setTimeout(drawMarkers, 2000, map)
