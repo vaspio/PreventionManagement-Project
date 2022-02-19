@@ -21,6 +21,7 @@
 	var draw_poly = false;
 	var draw2_poly = false;
 	var line,line2;
+	var iot_lat,iot_lng;
 	async function drawMarkers(map){
 		
 		// Get info from DB
@@ -31,7 +32,7 @@
 		
 		
 		// Iterate through to create markers
-		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id,android_lat,android_lng,iot_lat,iot_lng;
+		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id,android_lat,android_lng;
 		
 		devices.forEach(device => {
 			tempMarkerPosition = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
@@ -58,24 +59,6 @@
 				android_lng=tempMarkerPosition.lng;
 			}
 			else{
-				danger_level = parseInt(device['danger_level'])
-				if(danger_level == 2){
-					iconSrc = "danger_red_30.png"
-				} else if(danger_level == 1){
-					iconSrc = "danger_yellow_30.png"
-				} else {
-					iconSrc = "danger_black_30.png"
-				}
-
-				tempMarker = new google.maps.Marker({
-					position: tempMarkerPosition,
-					map: map,
-					icon: iconSrc
-				})
-				
-				infowindow = new google.maps.InfoWindow({
-					content:" "
-				});
 
 				// infowindow content
 				let content = "<h3> IoT Device </h3> Latitude: " + tempMarkerPosition.lat + " & Longtitude: " + tempMarkerPosition.lng
@@ -96,18 +79,49 @@
 							}
 						}
 
-						google.maps.event.addListener(tempMarker, 'click', function() {
-							infowindow.setContent(content);
-							infowindow.open(map,this);
-						});
 					}
 				})
+
+
+				danger_level = parseInt(device['danger_level'])
+				
+				if(!(keep_markers.includes(tempMarkerPosition.lat, danger_level, infos.value))){
+					keep_markers.push(tempMarkerPosition.lat, danger_level, infos.value)
+					console.log(keep_markers)
+					
+					if(danger_level == 2){
+						iconSrc = "danger_red_30.png"
+					} else if(danger_level == 1){
+						iconSrc = "danger_yellow_30.png"
+					} else {
+						iconSrc = "danger_black_30.png"
+					}
+
+					tempMarker = new google.maps.Marker({
+						position: tempMarkerPosition,
+						map: map,
+						icon: iconSrc
+					})
+					
+					infowindow = new google.maps.InfoWindow({
+						content:" "
+					});
+				
+				
+					google.maps.event.addListener(tempMarker, 'click', function() {
+						infowindow.setContent(content);
+						infowindow.open(map,this);
+					});
+				}
+
+			
 				
 				if(danger_level == 2){
+	
 
 					if(!(keep_poly.includes(tempMarkerPosition.lat))){
 						keep_poly.push(tempMarkerPosition.lat)
-						console.log(keep_poly)
+						// console.log(keep_poly)
 
 						if(!draw_poly){
 							line = new google.maps.Polyline({
@@ -157,12 +171,16 @@
 						
 						// Calculate the distance in kilometers between markers
 						var kms=(getDistanceFromLatLonInKm(android_lat,android_lng,tempMarkerPosition.lat,tempMarkerPosition.lng));
-						
-						iot_lat=tempMarkerPosition.lat;
-						iot_lng=tempMarkerPosition.lng;
+
+
 					}
+
+					iot_lat=tempMarkerPosition.lat;
+					iot_lng=tempMarkerPosition.lng;
+					
 					
 				}
+		
 			}   
 
 			tempMarker.setMap(map)
