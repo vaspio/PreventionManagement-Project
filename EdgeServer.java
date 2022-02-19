@@ -40,10 +40,6 @@ public class EdgeServer{
     static int messages_sent_succesfully = 0;
     static int messages_received = 0;
     static int messages_incoming_correct = 0;
-
-    // Keeping track of android position
-    static double android_position_x = 35.58;
-    static double android_position_y = 28.12;
     
     // Limits and thresholds
     static double smoke_min_value = 0;
@@ -198,31 +194,6 @@ public class EdgeServer{
             
             fnParseJsonFile(messageFromPublish);
 
-            // double longitude = Double.parseDouble(messageFromPublish[0]);
-            // double latitude = Double.parseDouble(messageFromPublish[1]);
-            // double battery = Double.parseDouble(messageFromPublish[2]);
-            // double current_smoke = Double.parseDouble(messageFromPublish[3]);
-            // double current_gas = Double.parseDouble(messageFromPublish[4]);
-            // double current_temperature = Double.parseDouble(messageFromPublish[5]);
-            // double current_radiation = Double.parseDouble(messageFromPublish[6]);
-
-            // String timestamp = fnGetTimestamp();
-            // double distance_from_android = fnCalculateDistanceFromAndroid(longitude, latitude);
-            // int danger_level = fnComputeDangerLevel(current_smoke, current_gas, current_temperature, current_radiation);
-
-            // // Contruct SQL query
-            // String sqlInsert = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + longitude + ", " + latitude + ", " + danger_level + ", " + distance_from_android + ", " + battery + ", " + current_smoke + ", " + current_gas + ", " + current_temperature + ", " + current_radiation + ")";
-
-            // // Create connection with DB and execute query
-            // Connection conn = fnGetDatabaseConnection();
-            // try {
-            //     PreparedStatement statement = conn.prepareStatement(sqlInsert);
-            //     int row = statement.executeUpdate();
-            //     System.out.println("mySQL affected rows" + row);
-            // }
-            // catch(SQLException ex){
-            //     System.out.println(ex.getMessage());
-            // }
         }
         catch(Exception e){
             /*
@@ -279,7 +250,13 @@ public class EdgeServer{
     /*
     ** Calculate distance between 2 spots on the map
     */ 
-    static Double fnCalculateDistanceFromAndroid(Double x, Double y){
+    static double fnCalculateDistanceFromAndroid(Double x, Double y){
+        
+        // Get android coordinates
+        float pos[] = fnGetAndroidLocation();
+        double android_position_x = pos[0];
+        double android_position_y = pos[1];
+
         
         // Reference: https://stackoverflow.com/questions/3694380/calculating-distance-between-two-points-using-latitude-longitude
 
@@ -371,7 +348,36 @@ public class EdgeServer{
             System.out.println(e.getMessage());
         }
 
-        System.out.println("Last Entry:" + latitude + ", " + longitude);
+        float[] pos = {latitude,longitude};
+        System.out.println("Last Entry:" + pos[0] + ", " + pos[1]);
+
+        return pos;
+    }
+
+    /*
+    ** Get android from database
+    */
+    static float[] fnGetAndroidLocation(){
+        float longitude = 0;
+        float latitude = 0;
+
+        try{
+            Connection con = fnGetDatabaseConnection();
+
+            Statement state = con.createStatement();
+            ResultSet results = state.executeQuery("select * from devices where device_type='android'");
+
+            while(results.next()){
+                latitude = results.getFloat(4);
+                longitude = results.getFloat(5);
+            }
+        }
+        catch(SQLException e){
+            System.out.println("\nFailed to execute query..");
+            System.out.println(e.getMessage());
+        }
+
+        System.out.println("Android:" + latitude + ", " + longitude);
 
         float[] pos = {latitude,longitude};
         return pos;
@@ -475,13 +481,13 @@ public class EdgeServer{
 
                 danger_level = fnComputeDangerLevel(maxSmoke, maxGas, maxTemperature, maxRadiation);
                 if(danger_level != 0){
-                    fnAlertAboutDangerLevel(danger_level);
+                    // Publish to android danger level and distance
+                    fnAlertAboutDangerLevel(danger_level, fnCalculateDistanceFromAndroid(latitude, longitude));
                 }
             }
 
+
             deviceType = "\"" + deviceType + "\"";
-
-
 
             // Save new device information
             String insertDeviceQuery = "INSERT INTO devices VALUES(NULL, " + tempParsedDeviceId + ", " + deviceType + ", " + latitude + ", " + longitude + ", " + danger_level + ", " + battery + ", " + status + ") ON DUPLICATE KEY UPDATE latitude=" + latitude + ", longitude=" + longitude + ", danger_level=" + danger_level + ", battery=" + battery;
@@ -521,8 +527,9 @@ public class EdgeServer{
     /*
     ** Alert users for danger levels
     */
-    static void fnAlertAboutDangerLevel(int danger_level){
-    
+    static void fnAlertAboutDangerLevel(int danger_level, double distance){
+        
+        // String publishMessageString = "{\"danger\":\"" + danger_level + " \",\"distance\":\"" + distance + "\"}";
         String publishMessageString = "The danger levels in the area are abnormal. Current danger level estimated: " + danger_level + " . Please get to one of the designated safe zones as soon as possible.";
         MqttMessage publishMqttMessage = new MqttMessage();
         publishMqttMessage.setPayload(publishMessageString.getBytes());
