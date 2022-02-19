@@ -407,14 +407,12 @@ public class EdgeServer{
             String tempParsedLongitude = jsonObject.get("Longitude").toString();
             double longitude = Double.parseDouble(tempParsedLongitude);
 
-            String tempParseBattery = jsonObject.get("Battery").toString();
-            double battery = Double.parseDouble(tempParseBattery);
-
             String tempParsedDeviceId = jsonObject.get("DeviceID").toString();
             tempParsedDeviceId = "\"" + tempParsedDeviceId + "\"";
 
             // Set device type for the db
             String deviceType;
+            double battery = 100;
             int danger_level = 0;
             int status = 1;
 
@@ -423,6 +421,9 @@ public class EdgeServer{
             }
             else{
                 deviceType = "iot";
+
+                String tempParseBattery = jsonObject.get("Battery").toString();
+                battery = Double.parseDouble(tempParseBattery);
 
                 // Parse events
                 Iterator<?> iterator = tempParsedArray.iterator();
@@ -438,12 +439,11 @@ public class EdgeServer{
                     Object object = iterator.next();
                     JSONObject objectJson = (JSONObject) object;
                     System.out.println(object);
-                    // System.out.println(object.getClass().getName());
 
                     arrayParsedType = objectJson.get("Sensor Type").toString();
                     arrayParsedNumber = objectJson.get("Sensor Number").toString();
                     arrayParsedValue = objectJson.get("Sensor Value").toString();
-                    // System.out.println(arrayParsedType);
+
                     double arrayParsedValueDouble = Double.parseDouble(arrayParsedValue);
                     // System.out.println(arrayParsedValueDouble);
 
@@ -453,17 +453,14 @@ public class EdgeServer{
                             maxSmoke = arrayParsedValueDouble;
                         }
                     } else if(arrayParsedType.equals("Gas Sensor")){
-                        // System.out.println(arrayParsedValueDouble);
                         if(arrayParsedValueDouble > maxGas){
                             maxGas = arrayParsedValueDouble;
                         }
                     } else if(arrayParsedType.equals("Temperature Sensor")){
-                        // System.out.println(arrayParsedValueDouble);
                         if(arrayParsedValueDouble > maxTemperature){
                             maxTemperature = arrayParsedValueDouble;
                         }
                     } else if(arrayParsedType.equals("Radiation Sensor")){
-                        // System.out.println(arrayParsedValueDouble);
                         if(arrayParsedValueDouble > maxRadiation){
                             maxRadiation = arrayParsedValueDouble;
                         }
