@@ -423,7 +423,7 @@ public class EdgeServer{
                 String tempParseBattery = jsonObject.get("Battery").toString();
                 battery = Double.parseDouble(tempParseBattery);
                 
-                if(jsonObject.has("data")){
+                if(jsonObject.containsKey("data")){
                     
                     // Get the measurements array and go through it
                     JSONArray tempParsedArray = (JSONArray) jsonObject.get("data");
@@ -480,16 +480,16 @@ public class EdgeServer{
                         executeVoidSqlQuery(insertEventQuery);
                     }    
                 
+                    danger_level = fnComputeDangerLevel(maxSmoke, maxGas, maxTemperature, maxRadiation);
+                    if(danger_level != 0){
+                        // Publish to android danger level and distance
+                        fnAlertAboutDangerLevel(danger_level, fnCalculateDistanceFromAndroid(latitude, longitude));
+                    }
                 }
                 else{
                     status = 0;
                 }
 
-                danger_level = fnComputeDangerLevel(maxSmoke, maxGas, maxTemperature, maxRadiation);
-                if(danger_level != 0){
-                    // Publish to android danger level and distance
-                    fnAlertAboutDangerLevel(danger_level, fnCalculateDistanceFromAndroid(latitude, longitude));
-                }
             }
 
 
