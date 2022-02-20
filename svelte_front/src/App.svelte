@@ -5,7 +5,7 @@
 
 		// Create map initial info
 		const mapCenter = { lat: 37.977707907538836, lng: 23.726837568280057 }
-		const mapZoom = 6
+		const mapZoom = 12
 
 		// Setup map element
 		const mapElement = document.getElementById('project-map')
@@ -32,7 +32,7 @@
 		
 		
 		// Iterate through to create markers
-		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id,android_lat,android_lng;
+		var tempMarkerPosition, tempMarker, danger_level, iconSrc, infowindow, infos, device_id, dev_id,android_lat,android_lng,status;
 		
 		devices.forEach(device => {
 			tempMarkerPosition = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
@@ -61,6 +61,9 @@
 			else{
 
 				danger_level = parseInt(device['danger_level'])
+				// status = parseInt(device['status'])
+
+				// infowindow = null
 
 				if(keep_markers.includes(tempMarkerPosition.lat)){
 
@@ -99,11 +102,13 @@
 				// infowindow content
 				let content = "<h3> IoT Device </h3> Latitude: " + tempMarkerPosition.lat + " & Longtitude: " + tempMarkerPosition.lng
 				let fin = false
-	
+				
+
 				events.forEach(event => {
 					if(fin == false){
 						dev_id = event['device_id']
 						
+						// if the event is connected to the current device
 						if(dev_id == device.device_id){
 							infos = { type: event['type'], value: parseFloat(event['value']), sensor_id: event['sensor_id'] }
 							
@@ -122,7 +127,7 @@
 
 					}
 				})
-
+	
 			
 				
 				// if(danger_level == 2){
@@ -233,7 +238,7 @@
 		drawArea(devices, map);
 		drawCirle(devices, map);
 		
-		setTimeout(drawMarkers, 2000, map)
+		setTimeout(drawMarkers, 1000, map)
 		
 
 	}

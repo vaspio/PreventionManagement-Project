@@ -34,6 +34,8 @@ public class EdgeServer{
     // Keeping the mqtt client available globally
     static MqttAsyncClient sampleClient;
     static String current_topic;
+    static Connection conn = null;
+
 
     // Tracking Mqtt messaging statistics
     static int messages_sent = 0;
@@ -58,8 +60,35 @@ public class EdgeServer{
     // Init server
     public static void main(String[] args) {
         // gui();
+        try{
+            String driver = "com.mysql.jdbc.Driver";
+            String url = "jdbc:mysql://localhost:3306/preventiondb?characterEncoding=latin1";
+            String user = "root";
+            String password = "Project123!";
 
-        connectToServer();
+            conn = DriverManager.getConnection(url, user, password);   
+
+            connectToServer();
+            
+        } 
+        catch(SQLException e){
+            System.out.println("\nCan't establish connection!");
+            System.out.println(e.getMessage());
+        }
+        // finally{
+        //     try{
+        //         if(conn != null){
+    
+        //             conn.close();
+        //         }
+        //     }
+        //     catch(Exception e){
+        //         System.out.println(e.getMessage());
+        //     }
+        // }
+
+
+
     }
 
 
@@ -192,6 +221,7 @@ public class EdgeServer{
         // Information given through mqtt
         try {
             
+            System.out.println("\n\nmessage came:"+ messageFromPublish +" \n");
             fnParseJsonFile(messageFromPublish);
 
         }
@@ -215,20 +245,29 @@ public class EdgeServer{
     */
     public static Connection fnGetDatabaseConnection(){
 
-        Connection conn = null;
         
-        try {
-            String driver = "com.mysql.jdbc.Driver";
-            String url = "jdbc:mysql://localhost:3306/preventiondb?characterEncoding=latin1";
-            String user = "root";
-            String password = "Project123!";
+        // try {
+        //     String driver = "com.mysql.jdbc.Driver";
+        //     String url = "jdbc:mysql://localhost:3306/preventiondb?characterEncoding=latin1";
+        //     String user = "root";
+        //     String password = "Project123!";
 
-            conn = DriverManager.getConnection(url, user, password);   
-        } 
-        catch(SQLException e){
-            System.out.println("\nCan't establish connection!");
-            System.out.println(e.getMessage());
-        }
+        //     conn = DriverManager.getConnection(url, user, password);   
+        // } 
+        // catch(SQLException e){
+        //     System.out.println("\nCan't establish connection!");
+        //     System.out.println(e.getMessage());
+        // }
+        // finally{
+        //     try{
+        //         if(conn!=null) conn.close();
+        //     }
+        //     catch(Exception e){
+        //         System.out.println(e.getMessage());
+        //     }
+
+
+        // }
 
         return conn;
 
@@ -437,6 +476,7 @@ public class EdgeServer{
                     double maxGas = -1.0;
                     double maxTemperature = -1.0;
                     double maxRadiation = -1.0;
+                    int count = 0;
     
                     while(iterator.hasNext()) {
     
@@ -447,6 +487,9 @@ public class EdgeServer{
                         arrayParsedType = objectJson.get("Sensor Type").toString();
                         arrayParsedNumber = objectJson.get("Sensor Number").toString();
                         arrayParsedValue = objectJson.get("Sensor Value").toString();
+                        
+                        String sensor_number = String.valueOf(count);
+                        count = count + 1;
     
                         double arrayParsedValueDouble = Double.parseDouble(arrayParsedValue);
                         // System.out.println(arrayParsedValueDouble);
@@ -476,7 +519,7 @@ public class EdgeServer{
     
                         // Contruct SQL query
                         String timestamp = fnGetTimestamp();
-                        String insertEventQuery = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + arrayParsedType + ", " + arrayParsedValueDouble + ", " + arrayParsedNumber + ", " + tempParsedDeviceId + ")";
+                        String insertEventQuery = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + arrayParsedType + ", " + arrayParsedValueDouble + ", " + sensor_number + ", " + tempParsedDeviceId + ")";
                         executeVoidSqlQuery(insertEventQuery);
                     }    
                 
@@ -534,15 +577,28 @@ public class EdgeServer{
     ** Alert users for danger levels
     */
     static void fnAlertAboutDangerLevel(int danger_level, double distance){
+                
+        String danger;
+        if(danger_level == 1){
+            danger = "medium";
+        }
+        else{
+            danger = "high";
+        }
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("dangerLevel", danger);
+        jsonObject.put("distanceFromIotCenter", String.valueOf(distance));
+
+        String publishMessageString = jsonObject.toString();
         
-        // String publishMessageString = "{\"danger\":\"" + danger_level + " \",\"distance\":\"" + distance + "\"}";
-        String publishMessageString = "The danger levels in the area are abnormal. Current danger level estimated: " + danger_level + " . Please get to one of the designated safe zones as soon as possible.";
+        // String publishMessageString = "The danger levels in the area are abnormal. Current danger level estimated: " + danger_level + " . Please get to one of the designated safe zones as soon as possible.";
         MqttMessage publishMqttMessage = new MqttMessage();
         publishMqttMessage.setPayload(publishMessageString.getBytes());
 
         try {
             System.out.println("Before publishing danger");
-            sampleClient.publish("Android/", publishMqttMessage);
+            sampleClient.publish("Notifications/", publishMqttMessage);
             System.out.println("After publishing danger");
         }
         catch (MqttException me) {
