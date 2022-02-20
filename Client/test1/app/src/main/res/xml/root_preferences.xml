@@ -1,0 +1,58 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        app:title="@string/settings_title"
+        app:icon="@drawable/ic_baseline_computer_24">
+        <EditTextPreference
+            app:defaultValue="tcp://broker.hivemq.com"
+            app:key="edit_ip"
+            app:singleLine="true"
+            app:title="@string/edit_ip_address"
+            app:useSimpleSummaryProvider="true"
+            />
+        <EditTextPreference
+            app:defaultValue="1883"
+            app:key="edit_port"
+            app:singleLine="true"
+            app:title="@string/edit_port"
+            app:useSimpleSummaryProvider="true"
+            />
+    </PreferenceCategory>
+    <PreferenceCategory
+        app:title="@string/location_settings"
+        app:icon="@drawable/ic_baseline_my_location_24">
+        <SwitchPreference
+            app:key="manual"
+            app:summaryOn="@string/summary_on"
+            app:summaryOff="@string/summary_of"
+            app:defaultValue="false"
+            app:title="@string/manual_loc"
+            />
+        <ListPreference
+            android:dependency="manual"
+            android:entries="@array/file_names"
+            android:entryValues="@array/file_values"
+            android:key="list_preference_1"
+            android:defaultValue="1"
+            android:title="Choose file for location calculation"
+            />
+        <SeekBarPreference
+            app:dependency="manual"
+            app:key="file_1"
+            app:title="Timer For File 1"
+            app:showSeekBarValue="true"
+            app:defaultValue="269"
+            android:max="269"
+            />
+        <SeekBarPreference
+            app:dependency="manual"
+            app:key="file_2"
+            app:title="Timer For File 2"
+            app:showSeekBarValue="true"
+            app:defaultValue="274"
+            android:max="274"
+            />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

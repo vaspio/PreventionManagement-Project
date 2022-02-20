@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context=".PIckSensorType">
+
+    <TextView
+        android:id="@+id/add_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Please Choose New Sensor Type"
+        android:textAlignment="center"
+        android:textColor="@color/teal_200"
+        android:textSize="26dp" />
+
+    <RadioGroup
+        android:id="@+id/RdG"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/add_title"
+        android:layout_marginTop="24dp">
+
+        <RadioButton
+            android:id="@+id/sm_sensor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Smoke Sensor"
+            android:textColor="@color/red"
+            android:textSize="20dp" />
+
+        <RadioButton
+            android:id="@+id/uv_sensor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="UV Sensor"
+            android:textColor="@color/red"
+            android:textSize="20dp" />
+
+        <RadioButton
+            android:id="@+id/thml_sensor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Thermal Sensor"
+            android:textColor="@color/red"
+            android:textSize="20dp" />
+
+        <RadioButton
+            android:id="@+id/gas_sensor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Gas Sensor"
+            android:textColor="@color/red"
+            android:textSize="20dp" />
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_below="@+id/gas_sensor"
+            android:layout_marginLeft="100dp"
+            android:layout_marginTop="10dp"
+            android:text="Save New Sensor Type" />
+    </RadioGroup>
+
+</RelativeLayout>

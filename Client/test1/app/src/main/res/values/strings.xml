@@ -1,0 +1,13 @@
+<resources>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="app_name">Civil Protection App</string>
+    <string name="settings_title">IP and Port Settings</string>
+    <string name="edit_ip_address">Edit IP Address</string>
+    <string name="edit_port">Edit Port Number</string>
+    <string name="location_settings">Location Settings</string>
+    <string name="summary_on">You can choose manual location setting</string>
+    <string name="summary_of">The location of your device is given by its GPS</string>
+    <string name="manual_loc">Manual Location Setting</string>
+    <string name="select_loc">Select Location</string>
+
+</resources>
