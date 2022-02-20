@@ -333,7 +333,9 @@
 	}
 	
 	
+	
 	var keep_circles = []
+	var iotCircle
 	async function drawCirle(devices, map){
 		var deviceCoordinates = []
 
@@ -358,19 +360,33 @@
 				lat : deviceCoordinates[i]['lat'], 
 				lng : deviceCoordinates[i]['lng'],
 			}
+			
+			var st = deviceCoordinates[i]['status']
 
 			if(!(keep_circles.includes(center.lat))){
 				keep_circles.push(center.lat)
 				// console.log(keep_circles)
 				
+				if(iotCircle){
+					iotCircle.setMap(null)
+				}
+				iotCircle = null
+
+				var color
+				if(st == 1){
+					color = green					
+				}
+				else{
+					color = red
+				}
 
 				// !! check if we want red or green 
 
-				var iotCircle = new google.maps.Circle({
+				iotCircle = new google.maps.Circle({
 					strokeColor: "#32CD32",
 					strokeOpacity: 10,
 					strokeWeight: 0,
-					fillColor: green,
+					fillColor: color,
 					fillOpacity: 0.35,
 					map: map,
 					center: center,
@@ -381,6 +397,8 @@
 			}
 		}
 
+
+	}
 
 	}
 
