@@ -396,26 +396,24 @@ public class EdgeServer{
 
             JSONObject jsonObject = (JSONObject) parser.parse(messageTemp);            
 
-            // Get the measurements array and go through it
-            JSONArray tempParsedArray = (JSONArray) jsonObject.get("data");
-
-
+            
+            
             // Get the device related info
             String tempParsedLatitude = jsonObject.get("Latitude").toString();
             double latitude = Double.parseDouble(tempParsedLatitude);
-
+            
             String tempParsedLongitude = jsonObject.get("Longitude").toString();
             double longitude = Double.parseDouble(tempParsedLongitude);
-
+            
             String tempParsedDeviceId = jsonObject.get("DeviceID").toString();
             tempParsedDeviceId = "\"" + tempParsedDeviceId + "\"";
-
+            
             // Set device type for the db
             String deviceType;
             double battery = 100;
             int danger_level = 0;
             int status = 1;
-
+            
             if(current_topic.startsWith("Android")){
                 deviceType = "android";
             }
@@ -424,56 +422,67 @@ public class EdgeServer{
 
                 String tempParseBattery = jsonObject.get("Battery").toString();
                 battery = Double.parseDouble(tempParseBattery);
-
-                // Parse events
-                Iterator<?> iterator = tempParsedArray.iterator();
                 
-                String arrayParsedType, arrayParsedNumber, arrayParsedValue;
-                double maxSmoke = -1.0;
-                double maxGas = -1.0;
-                double maxTemperature = -1.0;
-                double maxRadiation = -1.0;
-
-                while(iterator.hasNext()) {
-
-                    Object object = iterator.next();
-                    JSONObject objectJson = (JSONObject) object;
-                    System.out.println(object);
-
-                    arrayParsedType = objectJson.get("Sensor Type").toString();
-                    arrayParsedNumber = objectJson.get("Sensor Number").toString();
-                    arrayParsedValue = objectJson.get("Sensor Value").toString();
-
-                    double arrayParsedValueDouble = Double.parseDouble(arrayParsedValue);
-                    // System.out.println(arrayParsedValueDouble);
-
-                    // Calculate how the measurement affects current standings
-                    if(arrayParsedType.equals("Smoke Sensor")){
-                        if(arrayParsedValueDouble > maxSmoke){
-                            maxSmoke = arrayParsedValueDouble;
+                if(jsonObject.has("data")){
+                    
+                    // Get the measurements array and go through it
+                    JSONArray tempParsedArray = (JSONArray) jsonObject.get("data");
+    
+                    // Parse events
+                    Iterator<?> iterator = tempParsedArray.iterator();
+    
+                    
+                    String arrayParsedType, arrayParsedNumber, arrayParsedValue;
+                    double maxSmoke = -1.0;
+                    double maxGas = -1.0;
+                    double maxTemperature = -1.0;
+                    double maxRadiation = -1.0;
+    
+                    while(iterator.hasNext()) {
+    
+                        Object object = iterator.next();
+                        JSONObject objectJson = (JSONObject) object;
+                        System.out.println(object);
+    
+                        arrayParsedType = objectJson.get("Sensor Type").toString();
+                        arrayParsedNumber = objectJson.get("Sensor Number").toString();
+                        arrayParsedValue = objectJson.get("Sensor Value").toString();
+    
+                        double arrayParsedValueDouble = Double.parseDouble(arrayParsedValue);
+                        // System.out.println(arrayParsedValueDouble);
+    
+                        // Calculate how the measurement affects current standings
+                        if(arrayParsedType.equals("Smoke Sensor")){
+                            if(arrayParsedValueDouble > maxSmoke){
+                                maxSmoke = arrayParsedValueDouble;
+                            }
+                        } else if(arrayParsedType.equals("Gas Sensor")){
+                            if(arrayParsedValueDouble > maxGas){
+                                maxGas = arrayParsedValueDouble;
+                            }
+                        } else if(arrayParsedType.equals("Temperature Sensor")){
+                            if(arrayParsedValueDouble > maxTemperature){
+                                maxTemperature = arrayParsedValueDouble;
+                            }
+                        } else if(arrayParsedType.equals("Radiation Sensor")){
+                            if(arrayParsedValueDouble > maxRadiation){
+                                maxRadiation = arrayParsedValueDouble;
+                            }
                         }
-                    } else if(arrayParsedType.equals("Gas Sensor")){
-                        if(arrayParsedValueDouble > maxGas){
-                            maxGas = arrayParsedValueDouble;
-                        }
-                    } else if(arrayParsedType.equals("Temperature Sensor")){
-                        if(arrayParsedValueDouble > maxTemperature){
-                            maxTemperature = arrayParsedValueDouble;
-                        }
-                    } else if(arrayParsedType.equals("Radiation Sensor")){
-                        if(arrayParsedValueDouble > maxRadiation){
-                            maxRadiation = arrayParsedValueDouble;
-                        }
-                    }
-
-                    // Prepare values for mysql
-                    arrayParsedType = "\"" + arrayParsedType + "\"";
-                    arrayParsedNumber = "\"" + arrayParsedNumber + "\"";
-
-                    // Contruct SQL query
-                    String timestamp = fnGetTimestamp();
-                    String insertEventQuery = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + arrayParsedType + ", " + arrayParsedValueDouble + ", " + arrayParsedNumber + ", " + tempParsedDeviceId + ")";
-                    executeVoidSqlQuery(insertEventQuery);
+    
+                        // Prepare values for mysql
+                        arrayParsedType = "\"" + arrayParsedType + "\"";
+                        arrayParsedNumber = "\"" + arrayParsedNumber + "\"";
+    
+                        // Contruct SQL query
+                        String timestamp = fnGetTimestamp();
+                        String insertEventQuery = "INSERT INTO events VALUES(NULL, " + timestamp + ", " + arrayParsedType + ", " + arrayParsedValueDouble + ", " + arrayParsedNumber + ", " + tempParsedDeviceId + ")";
+                        executeVoidSqlQuery(insertEventQuery);
+                    }    
+                
+                }
+                else{
+                    status = 0;
                 }
 
                 danger_level = fnComputeDangerLevel(maxSmoke, maxGas, maxTemperature, maxRadiation);

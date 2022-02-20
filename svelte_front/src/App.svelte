@@ -67,7 +67,7 @@
 					// tempMarker.setMap(null)
 					tempMarker = null
 
-					// keep_markers.pop(tempMarkerPosition.lat)
+					keep_markers.pop(tempMarkerPosition.lat)
 				}
 				else{
 					keep_markers.push(tempMarkerPosition.lat)
@@ -125,70 +125,70 @@
 
 			
 				
-				if(danger_level == 2){
+				// if(danger_level == 2){
 	
 
-					if(!(keep_poly.includes(tempMarkerPosition.lat))){
-						keep_poly.push(tempMarkerPosition.lat)
-						// console.log(keep_poly)
+				// 	if(!(keep_poly.includes(tempMarkerPosition.lat))){
+				// 		keep_poly.push(tempMarkerPosition.lat)
+				// 		// console.log(keep_poly)
 
-						if(!draw_poly){
-							line = new google.maps.Polyline({
-								path: [
-									new google.maps.LatLng(android_lat,android_lng),
-									new google.maps.LatLng(tempMarkerPosition.lat, tempMarkerPosition.lng)
-								],
-								strokeColor: "#50C878",
-								strokeOpacity: 1.0,
-								strokeWeight: 5,
-								map: map
-							});
-							draw_poly = true
-						}
-						else{
-							line.getPath().removeAt();
+				// 		if(!draw_poly){
+				// 			line = new google.maps.Polyline({
+				// 				path: [
+				// 					new google.maps.LatLng(android_lat,android_lng),
+				// 					new google.maps.LatLng(tempMarkerPosition.lat, tempMarkerPosition.lng)
+				// 				],
+				// 				strokeColor: "#50C878",
+				// 				strokeOpacity: 1.0,
+				// 				strokeWeight: 5,
+				// 				map: map
+				// 			});
+				// 			draw_poly = true
+				// 		}
+				// 		else{
+				// 			line.getPath().removeAt();
 
-							if(draw2_poly){
-								line2.getPath().removeAt();
-							}
+				// 			if(draw2_poly){
+				// 				line2.getPath().removeAt();
+				// 			}
 
-							line = new google.maps.Polyline({
-								path: [
-									new google.maps.LatLng(iot_lat,iot_lng),
-									new google.maps.LatLng((tempMarkerPosition.lat), (tempMarkerPosition.lng))
-								],
-								strokeColor: "#50C878",
-								strokeOpacity: 1.0,
-								strokeWeight: 5,
-								map: map
-							});
+				// 			line = new google.maps.Polyline({
+				// 				path: [
+				// 					new google.maps.LatLng(iot_lat,iot_lng),
+				// 					new google.maps.LatLng((tempMarkerPosition.lat), (tempMarkerPosition.lng))
+				// 				],
+				// 				strokeColor: "#50C878",
+				// 				strokeOpacity: 1.0,
+				// 				strokeWeight: 5,
+				// 				map: map
+				// 			});
 		
-							line2 = new google.maps.Polyline({
-								path: [
-									new google.maps.LatLng(android_lat,android_lng),
-									new google.maps.LatLng((tempMarkerPosition.lat+iot_lat)/2, (tempMarkerPosition.lng+iot_lng)/2)
-								],
-								strokeColor: "#50C878",
-								strokeOpacity: 1.0,
-								strokeWeight: 5,
-								map: map
+				// 			line2 = new google.maps.Polyline({
+				// 				path: [
+				// 					new google.maps.LatLng(android_lat,android_lng),
+				// 					new google.maps.LatLng((tempMarkerPosition.lat+iot_lat)/2, (tempMarkerPosition.lng+iot_lng)/2)
+				// 				],
+				// 				strokeColor: "#50C878",
+				// 				strokeOpacity: 1.0,
+				// 				strokeWeight: 5,
+				// 				map: map
 		
-							});
+				// 			});
 
-							draw2_poly = true
-						}
+				// 			draw2_poly = true
+				// 		}
 						
-						// Calculate the distance in kilometers between markers
-						var kms=(getDistanceFromLatLonInKm(android_lat,android_lng,tempMarkerPosition.lat,tempMarkerPosition.lng));
+				// 		// Calculate the distance in kilometers between markers
+				// 		var kms=(getDistanceFromLatLonInKm(android_lat,android_lng,tempMarkerPosition.lat,tempMarkerPosition.lng));
 
 
-					}
+				// 	}
 
-					iot_lat=tempMarkerPosition.lat;
-					iot_lng=tempMarkerPosition.lng;
+				// 	iot_lat=tempMarkerPosition.lat;
+				// 	iot_lng=tempMarkerPosition.lng;
 					
 					
-				}
+				// }
 				// else{
 				// 	if(draw2_poly){
 				// 		var lng
@@ -230,11 +230,11 @@
 		})
 
 
+		drawArea(devices, map);
+		drawCirle(devices, map);
 		
 		setTimeout(drawMarkers, 2000, map)
-
-		// drawArea(devices, map)
-		drawCirle(devices, map);
+		
 
 	}
 
@@ -258,6 +258,8 @@
 
 
 	/* Draw area on map */
+	var keep_polygon = []
+	var mapArea 
 	async function drawArea(devices, map){
 		
 		// Settings for area
@@ -269,47 +271,75 @@
 
 		// Setup Coordinates for area
 		var polygonCoordinates = []
+		var count = 0
 
-		var coordinates;
+		var coordinates, danger_level, type;
 		devices.forEach(device => {
 			coordinates = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']) }
-			polygonCoordinates.push(coordinates)
-		})
-		var bounds = {
-			north: Math.max(polygonCoordinates[0]['lat'], polygonCoordinates[1]['lat']),
-			south: Math.min(polygonCoordinates[0]['lat'], polygonCoordinates[1]['lat']),
-			east: Math.max(polygonCoordinates[0]['lng'], polygonCoordinates[1]['lng']),
-			west: Math.min(polygonCoordinates[0]['lng'], polygonCoordinates[1]['lng']),
-    	}
-	
-		// Setting for area polygon
-		const mapArea = new google.maps.Rectangle({
-			bounds: bounds,
-			map: map,
-			strokeColor: strokeColor,
-			strokeOpacity: strokeOpacity,
-			strokeWeight: strokeWeight,
-			fillColor: fillColor,
-			fillOpacity: fillOpacity,
-		})
+			danger_level = parseInt(device['danger_level'])
+			type = device['device_type']
 
-		// Set the area onto the map
-		mapArea.setMap(map)
+			if(type == "iot" && danger_level > 0){
+				count = count + 1
+				polygonCoordinates.push(coordinates)
+			}
+		})
+		
+		if(count >= 2){
+			var bounds = {
+				north: Math.max(polygonCoordinates[0]['lat'], polygonCoordinates[1]['lat']),
+				south: Math.min(polygonCoordinates[0]['lat'], polygonCoordinates[1]['lat']),
+				east: Math.max(polygonCoordinates[0]['lng'], polygonCoordinates[1]['lng']),
+				west: Math.min(polygonCoordinates[0]['lng'], polygonCoordinates[1]['lng']),
+			}
+			
+			var k = keep_polygon.pop()
+			if(!( JSON.stringify(k) === JSON.stringify(bounds) )){
+				if(mapArea){
 
+					mapArea.setMap(null)
+				}
+				mapArea = null
+
+				keep_polygon.push(bounds)
+				
+				// Setting for area polygon
+				mapArea = new google.maps.Rectangle({
+					bounds: bounds,
+					map: map,
+					strokeColor: strokeColor,
+					strokeOpacity: strokeOpacity,
+					strokeWeight: strokeWeight,
+					fillColor: fillColor,
+					fillOpacity: fillOpacity,
+				})
+				// Set the area onto the map
+				mapArea.setMap(map)
+			}
+			
+		}
+		else{
+			if(mapArea){
+				mapArea.setMap(null)
+			}
+			mapArea = null
+		}
+		
 	}
-
-
+	
+	
 	var keep_circles = []
 	async function drawCirle(devices, map){
 		var deviceCoordinates = []
 
-		var coordinates;
+		var info;
 		devices.forEach(device => {
-			coordinates = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']), type: device['device_type'] }
+			info = { lat: parseFloat(device['latitude']), lng: parseFloat(device['longitude']), type: device['device_type'], status: parseInt(device['status']) }
+
 
 			// Make sure it is an IoT device
-			if(coordinates.type == "iot"){
-				deviceCoordinates.push(coordinates)
+			if(info.type == "iot"){
+				deviceCoordinates.push(info)
 			}
 		})
 
