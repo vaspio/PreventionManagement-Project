@@ -4,8 +4,8 @@
 	async function initMap(){ 
 
 		// Create map initial info
-		const mapCenter = { lat: 37.977707907538836, lng: 23.726837568280057 }
-		const mapZoom = 12
+		const mapCenter = { lat: 37.9681, lng: 23.7663 }
+		const mapZoom = 18
 
 		// Setup map element
 		const mapElement = document.getElementById('project-map')
@@ -361,24 +361,25 @@
 				lng : deviceCoordinates[i]['lng'],
 			}
 			
-			var st = deviceCoordinates[i]['status']
+			// var st = deviceCoordinates[i]['status']
 
 			if(!(keep_circles.includes(center.lat))){
+
 				keep_circles.push(center.lat)
 				// console.log(keep_circles)
 				
-				if(iotCircle){
-					iotCircle.setMap(null)
-				}
-				iotCircle = null
+				// if(iotCircle){
+				// 	iotCircle.setMap(null)
+				// }
+				// iotCircle = null
 
-				var color
-				if(st == 1){
-					color = green					
-				}
-				else{
-					color = red
-				}
+				var color = green
+				// if(st == 1){
+				// 	color = green					
+				// }
+				// else{
+				// 	color = red
+				// }
 
 				// !! check if we want red or green 
 
@@ -390,7 +391,7 @@
 					fillOpacity: 0.35,
 					map: map,
 					center: center,
-					radius: 10000,
+					radius: 20,
 				})
 				// Set the area onto the map
 				iotCircle.setMap(map)
@@ -400,7 +401,6 @@
 
 	}
 
-	}
 
 
 

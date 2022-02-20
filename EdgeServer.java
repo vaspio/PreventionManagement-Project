@@ -358,7 +358,7 @@ public class EdgeServer{
             danger_level = 2;
         }
 
-        System.out.println("Danger level: " + danger_level + " . Computed from smoke " + current_smoke + ", gas " + current_gas + ", temperature " + current_temperature + ", radiation " + current_radiation);
+        System.out.println("\n\tDanger level: " + danger_level + " . Computed from smoke " + current_smoke + ", gas " + current_gas + ", temperature " + current_temperature + ", radiation " + current_radiation);
 
         return danger_level;
 
@@ -503,11 +503,11 @@ public class EdgeServer{
                             if(arrayParsedValueDouble > maxGas){
                                 maxGas = arrayParsedValueDouble;
                             }
-                        } else if(arrayParsedType.equals("Temperature Sensor")){
+                        } else if(arrayParsedType.equals("Thermal Sensor")){
                             if(arrayParsedValueDouble > maxTemperature){
                                 maxTemperature = arrayParsedValueDouble;
                             }
-                        } else if(arrayParsedType.equals("Radiation Sensor")){
+                        } else if(arrayParsedType.equals("UV Sensor")){
                             if(arrayParsedValueDouble > maxRadiation){
                                 maxRadiation = arrayParsedValueDouble;
                             }
